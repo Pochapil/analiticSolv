@@ -121,8 +121,8 @@ for j in range(N_theta_accretion):
 # цикл для поворотов, сколько точек на графике интегралов
 # t_max = 40  # sec
 
-omega_ns = 8  # скорость вращения НЗ - будет меняться только угол fi_mu!
-t_max = 360 // omega_ns + 360 % omega_ns
+omega_ns = 8 # скорость вращения НЗ - будет меняться только угол fi_mu!
+t_max = (360 // omega_ns) + (1 if 360 % omega_ns > 0 else 0)
 omega_ns = omega_ns * grad_to_rad
 
 
