@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import matplotlib
 import scipy.integrate
 
+import matplotlib.cm as cm
+from matplotlib.colors import Normalize
+
 matplotlib.use("TkAgg")
 import newArgsFunc2 as newArgsFunc
 
@@ -230,9 +233,14 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
     # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
     row_figure = 0
     column_figure = 0
+
+    cmap = cm.get_cmap('viridis')
+    normalizer = Normalize(-1, 1)
+    im = cm.ScalarMappable(norm=normalizer)
+
     fi_mu_max = fi_mu_0 + omega_ns * position_of_max
     for i1 in range(number_of_plots):
-        fi_mu = fi_mu_max + omega_ns * (t_max // (number_of_plots -1)) * i1
+        fi_mu = fi_mu_max + omega_ns * (t_max // (number_of_plots - 1)) * i1
         # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
         A_matrix_analytic = matrix.newMatrixAnalytic(fi_rotate, betta_rotate, fi_mu, betta_mu)
 
@@ -250,22 +258,23 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
                     count_0 += 1
 
         crf[i1] = axes[row_figure, column_figure].contourf(fi_range, theta_range / grad_to_rad,
-                                                           cos_psi_range.transpose(), vmin=-1, vmax=1)
+                                                           cos_psi_range.transpose(), vmin=-1, vmax=1, cmap=cmap,norm=normalizer)
         if count_0 > 0:
             cr[i1] = axes[row_figure, column_figure].contour(fi_range, theta_range / grad_to_rad,
                                                              cos_psi_range.transpose(),
                                                              [0.], colors='w')
 
         axes[row_figure, column_figure].set_title(
-            "phase = %f" % (omega_ns * (t_max // (number_of_plots -1)) * i1 / (2 * np.pi)))
+            "phase = %.2f" % (omega_ns * (t_max // (number_of_plots - 1)) * i1 / (2 * np.pi)))
         column_figure += 1
         if column_figure == column_number:
             column_figure = 0
             row_figure += 1
 
 
-    plt.subplots_adjust(hspace =0.5, wspace=0.5)
-    cbar = fig.colorbar(crf[i1], ax=axes[:], shrink=0.8, location='right')
+
+    plt.subplots_adjust(hspace=0.5, wspace=0.5)
+    cbar = fig.colorbar(im, ax=axes[:, :], shrink=0.7, location='right')
     plt.show()
 
 
