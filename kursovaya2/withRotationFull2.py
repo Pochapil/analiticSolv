@@ -121,8 +121,9 @@ for j in range(N_theta_accretion):
 # цикл для поворотов, сколько точек на графике интегралов
 # t_max = 40  # sec
 
-omega_ns = 8 # скорость вращения НЗ - будет меняться только угол fi_mu!
-t_max = (360 // omega_ns) + (1 if 360 % omega_ns > 0 else 0)
+omega_ns = 8  # скорость вращения НЗ - будет меняться только угол fi_mu!
+t_max = (360 // omega_ns) + (
+    1 if 360 % omega_ns > 0 else 0)  # цикл для поворотов, сколько точек на графике интегралов - для полного поворота
 omega_ns = omega_ns * grad_to_rad
 
 
@@ -134,7 +135,6 @@ def calculate_integral_distribution(t_max, N_fi_accretion, N_theta_accretion):
     sum_simps_integrate = [0] * t_max
     simps_integrate_step = [0] * N_fi_accretion
     simps_cos = [0] * N_theta_accretion  # cos для интеграла по симпсону
-    count_more_1 = 0
     for i1 in range(t_max):
         # поворот
         fi_mu = fi_mu_0 + omega_ns * i1
@@ -156,8 +156,6 @@ def calculate_integral_distribution(t_max, N_fi_accretion, N_theta_accretion):
                 if cos_psi_range[i][j] > 0:
                     sum_intense[i1] += sigmStfBolc * Teff[j] ** 4 * cos_psi_range[i][j] * dS[j]
                     simps_cos[j] = cos_psi_range[i][j]
-                    if cos_psi_range[i][j] > 1:
-                        count_more_1+=1
                     # * S=R**2 * step_fi_accretion * step_teta_accretion
                 else:
                     simps_cos[j] = 0
@@ -169,13 +167,13 @@ def calculate_integral_distribution(t_max, N_fi_accretion, N_theta_accretion):
             integral_max = sum_intense[i1]
 
         sum_simps_integrate[i1] = scipy.integrate.simps(simps_integrate_step, fi_range)
-    return sum_intense, sum_simps_integrate, position_of_max, count_more_1
+    return sum_intense, sum_simps_integrate, position_of_max
 
 
-sum_intense, sum_simps_integrate, position_of_max, count_more_1 = calculate_integral_distribution(t_max, N_fi_accretion,
+sum_intense, sum_simps_integrate, position_of_max = calculate_integral_distribution(t_max, N_fi_accretion,
                                                                                     N_theta_accretion)
 print("max: %d" % position_of_max)
-print("count %d" % count_more_1)
+
 
 def plot_map_cos(n_pos, position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number):
     number_of_plots = row_number * column_number
@@ -209,8 +207,9 @@ def plot_map_cos(n_pos, position_of_max, t_max, N_fi_accretion, N_theta_accretio
         crf[i1] = axes[row_figure, column_figure].contourf(fi_range, theta_range / grad_to_rad,
                                                            cos_psi_range.transpose(), vmin=-1, vmax=1)
         if count_0 > 0:
-            cr[i1] = axes[row_figure, column_figure].contour(fi_range, theta_range / grad_to_rad, cos_psi_range.transpose(),
-                                                         [0.], colors='w')
+            cr[i1] = axes[row_figure, column_figure].contour(fi_range, theta_range / grad_to_rad,
+                                                             cos_psi_range.transpose(),
+                                                             [0.], colors='w')
         column_figure += 1
         if column_figure == column_number:
             column_figure = 0
@@ -218,6 +217,55 @@ def plot_map_cos(n_pos, position_of_max, t_max, N_fi_accretion, N_theta_accretio
 
     cbar = fig.colorbar(crf[i1], ax=axes[:], shrink=0.8, location='right')
 
+    plt.show()
+
+
+def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number):
+    number_of_plots = row_number * column_number
+
+    crf = [0] * number_of_plots
+    cr = [0] * number_of_plots
+
+    fig, axes = plt.subplots(nrows=row_number, ncols=column_number, figsize=(8, 8), subplot_kw={'projection': 'polar'})
+    # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
+    row_figure = 0
+    column_figure = 0
+    fi_mu_max = fi_mu_0 + omega_ns * position_of_max
+    for i1 in range(number_of_plots):
+        fi_mu = fi_mu_max + omega_ns * (t_max // (number_of_plots -1)) * i1
+        # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
+        A_matrix_analytic = matrix.newMatrixAnalytic(fi_rotate, betta_rotate, fi_mu, betta_mu)
+
+        # A_matrix_analytic = matrix.newRy(betta_mu) @ matrix.newRz(fi_mu) @ matrix.newRy(betta_rotate) \
+        #                 @ matrix.newRz(fi_rotate)
+
+        # print("analytic matrix:")
+        # print(A_matrix_analytic)
+        count_0 = 0
+        e_obs_mu = np.dot(A_matrix_analytic, e_obs)  # переход в магнитную СК
+        for i in range(N_fi_accretion):
+            for j in range(N_theta_accretion):
+                cos_psi_range[i][j] = np.dot(e_obs_mu, array_normal[i * N_fi_accretion + j])
+                if cos_psi_range[i][j] < 0:
+                    count_0 += 1
+
+        crf[i1] = axes[row_figure, column_figure].contourf(fi_range, theta_range / grad_to_rad,
+                                                           cos_psi_range.transpose(), vmin=-1, vmax=1)
+        if count_0 > 0:
+            cr[i1] = axes[row_figure, column_figure].contour(fi_range, theta_range / grad_to_rad,
+                                                             cos_psi_range.transpose(),
+                                                             [0.], colors='w')
+
+        axes[row_figure, column_figure].set_title(
+            "phase = %f" % (omega_ns * (t_max // (number_of_plots -1)) * i1 / (2 * np.pi)))
+        column_figure += 1
+        if column_figure == column_number:
+            column_figure = 0
+            row_figure += 1
+
+
+    plt.subplots_adjust(hspace =0.5, wspace=0.5)
+    cbar = fig.colorbar(crf[i1], ax=axes[:], shrink=0.8, location='right')
     plt.show()
 
 
@@ -232,15 +280,16 @@ ax3 = fig.add_subplot(111)
 ax3.plot(fi_for_plot, np.append(sum_intense[position_of_max:], sum_intense[0:position_of_max]), 'b', label='rectangle')
 ax3.plot(fi_for_plot, np.append(sum_simps_integrate[position_of_max:], sum_simps_integrate[0:position_of_max]), 'r',
          label='simps')
-ax3.set_xlabel('fi_rotate')
-ax3.set_ylabel("integral")
+ax3.set_xlabel('phase')
+ax3.set_ylabel("isotropic luminosity")
 ax3.legend()
 # ax3.yscale('log')
 plt.yscale('log')
 
-n_pos = 6
+n_pos = 10
 row_number = 2
 column_number = 3
-plot_map_cos(n_pos, position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number)
+# plot_map_cos(n_pos, position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number)
+plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number)
 
 plt.show()
