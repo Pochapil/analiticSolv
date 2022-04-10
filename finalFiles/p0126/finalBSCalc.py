@@ -114,9 +114,6 @@ def v(ksi):
             1 / ksi * special.expn(2, gamma * ksi) + betta * np.exp(-gamma) - special.expn(2, gamma))) / -u(ksi)
 
 
-# Plot results
-fig = plt.figure(1, figsize=(8, 8))
-
 a = 7.5657 * 10 ** (-15)  # радиационная константа p=aT**4  эрг см-3 К-4
 u2 = np.append(psoln1[::-1, 0], psoln[:, 0])
 T = (u2 / a) ** (1 / 4)
@@ -162,6 +159,9 @@ sigmStfBolc = 5.67 * 10 ** (-5)  # постоянная стефана боль�
 
 Teff = (fTeta() / sigmStfBolc) ** (1 / 4)
 Teffbs = (fTetabs(ksibs) / sigmStfBolc) ** (1 / 4)
+
+# Plot results
+fig = plt.figure(1, figsize=(8, 8))
 
 # Plot T
 ax3 = fig.add_subplot(321)

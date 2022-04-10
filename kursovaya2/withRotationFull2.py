@@ -258,7 +258,8 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
                     count_0 += 1
 
         crf[i1] = axes[row_figure, column_figure].contourf(fi_range, theta_range / grad_to_rad,
-                                                           cos_psi_range.transpose(), vmin=-1, vmax=1, cmap=cmap,norm=normalizer)
+                                                           cos_psi_range.transpose(), vmin=-1, vmax=1, cmap=cmap,
+                                                           norm=normalizer)
         if count_0 > 0:
             cr[i1] = axes[row_figure, column_figure].contour(fi_range, theta_range / grad_to_rad,
                                                              cos_psi_range.transpose(),
@@ -270,8 +271,6 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
         if column_figure == column_number:
             column_figure = 0
             row_figure += 1
-
-
 
     plt.subplots_adjust(hspace=0.5, wspace=0.5)
     cbar = fig.colorbar(im, ax=axes[:, :], shrink=0.7, location='right')
@@ -286,14 +285,17 @@ fi_for_plot = list(omega_ns * i / (2 * np.pi) for i in range(t_max))
 fig = plt.figure(figsize=(8, 8))
 ax3 = fig.add_subplot(111)
 # чтобы максимум был сначала - [position_of_max:], [0:position_of_max]
-ax3.plot(fi_for_plot, np.append(sum_intense[position_of_max:], sum_intense[0:position_of_max]), 'b', label='rectangle')
+# ax3.plot(fi_for_plot, np.append(sum_intense[position_of_max:], sum_intense[0:position_of_max]), 'b', label='rectangle')
 ax3.plot(fi_for_plot, np.append(sum_simps_integrate[position_of_max:], sum_simps_integrate[0:position_of_max]), 'r',
          label='simps')
 ax3.set_xlabel('phase')
-ax3.set_ylabel("isotropic luminosity")
+ax3.set_ylabel("isotropic luminosity, erg/s")
 ax3.legend()
 # ax3.yscale('log')
 plt.yscale('log')
+
+print(M_accretion_rate)
+print(H)
 
 n_pos = 10
 row_number = 2

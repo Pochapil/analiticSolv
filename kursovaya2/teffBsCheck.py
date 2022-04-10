@@ -2,6 +2,8 @@ import numpy as np
 from scipy.integrate import odeint
 import scipy.special as special
 import config
+import matplotlib.pyplot as plt
+
 
 def get_Teff_distribution(number_of_steps, m_accretion_rate, H, dRe_div_Re, R_e, ksi_rad, delta_ns, A_normal):
     # решение зависит от n размера пространства !!! взял n=3 везде
@@ -9,7 +11,7 @@ def get_Teff_distribution(number_of_steps, m_accretion_rate, H, dRe_div_Re, R_e,
     # const
     MSun = config.MSun  # масса молнца г
     G = config.G  # гравитационная постоянная см3·с−2·г−1
-    c = config.c # скорость света см/с
+    c = config.c  # скорость света см/с
     sigmaT = config.sigmaT  # сечение томсона см-2
     massP = config.massP  # масса протона г
     # kT = 3.9832335 * 10 ** (-1)  # томсоновская непрозрачность
@@ -43,7 +45,7 @@ def get_Teff_distribution(number_of_steps, m_accretion_rate, H, dRe_div_Re, R_e,
     # 44 формула статья
     gamma = (c * R_ns * A_normal * 3) / (k * delta_ns ** 2 * m_accretion_rate * 2 * ksi_rad)
     # 45 формула статья
-    eta = ((8 * k * 3 * u0 * delta_ns ** 2 * 2 * ksi_rad) / (21 * c * (2 * G * M_ns * R_ns) ** (1 / 2) * 3)) ** (1 / 4)
+    eta = ((8 * k * u0 * delta_ns ** 2 * 2 * ksi_rad) / (21 * c * (2 * G * M_ns * R_ns) ** (1 / 2) * 3)) ** (1 / 4)
 
     # 30 формула, du/dksi; dv/dksi = производная от 3 равенства
     # возвращает u, v
@@ -143,5 +145,23 @@ def get_Teff_distribution(number_of_steps, m_accretion_rate, H, dRe_div_Re, R_e,
     # получаем эффективную температуру из закона Стефана-Больцмана
     Teff = (fTheta() / sigmStfBolc) ** (1 / 4)
     Teffbs = (fThetabs(ksi_bs) / sigmStfBolc) ** (1 / 4)
+
+    fig = plt.figure(figsize=(8, 8))
+
+    ax5 = fig.add_subplot(121)
+    ax5.plot(ksi1[::-1], solution_before_ksi[::-1, 0], 'b', label='u')
+    ax5.plot(ksi1[::-1], u(ksi1[::-1]), 'r', label='ubs')
+    ax5.set_xlabel('ksi')
+    ax5.set_ylabel('u')
+    ax5.legend()
+
+    ax6 = fig.add_subplot(122)
+    ax6.plot(ksi1[::-1], solution_before_ksi[::-1, 1] / c, 'b', label='v/c')
+    ax6.plot(ksi1[::-1], v(ksi1[::-1]) / c, 'r', label='vbs/c')
+    ax6.set_xlabel('ksi')
+    ax6.set_ylabel('v/c')
+    ax6.legend()
+
+    plt.show()
 
     return Teffbs, Teff, ksiShock,

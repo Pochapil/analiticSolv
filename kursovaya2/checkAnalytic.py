@@ -33,14 +33,15 @@ sigmStfBolc = config.sigmStfBolc  # постоянная стефана боль
 
 # new args (for new func)
 dRe_div_Re = config.dRe_div_Re  # взял просто число
-M_accretion_rate = 10 ** 38 * R_ns / G / MSun  # темп аккреции
+# M_accretion_rate = 10 ** 38 * R_ns / G / MSun  # темп аккреции
+M_accretion_rate = config.M_accretion_rate
 ksi_rad = config.ksi_rad
 H = config.H  # магнитное поле стр 19 над формулой 37
 a_portion = config.a_portion  # a - в азимутальном направлении поток занимает фиксированную долю a полного круга 2πR sinθ
 
 # mu = 10 ** 30 * G  # магнитный момент см3
 mu = config.mu  # магнитный момент Гаусс * см3
-R_alfven = (mu ** 2 / (2 * M_accretion_rate * (G * M_ns) ** (1 / 2))) ** (2 / 7)  # альфвеновский радиус
+R_alfven = (mu ** 2 / (2 * M_accretion_rate * (2 * G * M_ns) ** (1 / 2))) ** (2 / 7)  # альфвеновский радиус
 ksi_param = 0.5
 R_e = ksi_param * R_alfven
 print("R_e :%f" % R_e)
@@ -83,5 +84,3 @@ ax3.set_xlabel('ksi')
 ax3.set_ylabel('log10T')
 ax3.legend()
 plt.show()
-
-
