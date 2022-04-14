@@ -251,6 +251,7 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
         # print(A_matrix_analytic)
         count_0 = 0
         e_obs_mu = np.dot(A_matrix_analytic, e_obs)  # переход в магнитную СК
+        # e_obs_mu = np.array([0,1,-1])
         for i in range(N_fi_accretion):
             for j in range(N_theta_accretion):
                 cos_psi_range[i][j] = np.dot(e_obs_mu, array_normal[i * N_fi_accretion + j])
@@ -302,5 +303,27 @@ row_number = 2
 column_number = 3
 # plot_map_cos(n_pos, position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number)
 plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number)
+
+plt.show()
+
+fig = plt.figure(figsize=(8, 8))
+ax = plt.axes(projection='3d')
+
+# r, p = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
+# x = np.cos(p)
+# y = np.sin(p)
+# z = r
+
+x = np.cos(fi_range)
+y = np.sin(fi_range)
+x, y = np.meshgrid(x, y)
+# z = np.sin(theta_range) ** 2
+# z, z1 = np.meshgrid(z, fi_range)
+
+z, z1 = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
+# ax.plot3D(x, y, z, 'gray')
+
+
+ax.plot_surface(x, y, z, cmap=plt.cm.YlGnBu_r)
 
 plt.show()
