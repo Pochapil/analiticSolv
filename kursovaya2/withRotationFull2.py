@@ -306,21 +306,49 @@ plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accretion,
 
 plt.show()
 
+# from mpl_toolkits.mplot3d import Axes3D
+#
+# ax = Axes3D(fig)
+#
+# x = y = z = np.zeros((N_fi_accretion, N_theta_accretion))
+#
+# for i in range(N_theta_accretion):
+#     for j in range(N_fi_accretion):
+#         x[i, j] = np.cos(fi_range[j])
+#         y[i, j] = np.sin(fi_range[j])
+#         z[i, j] = np.sin(theta_range[i]) ** 2  # bell curve
+#
+# x = x.flatten()
+# y = y.flatten()
+# z = z.flatten()
+#
+# ax.plot_trisurf(x, y, z, cmap=cm.jet, linewidth=0, antialiased=False)
+
 fig = plt.figure(figsize=(8, 8))
 ax = plt.axes(projection='3d')
 
-# r, p = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
-# x = np.cos(p)
-# y = np.sin(p)
-# z = r
+# theta_range = np.arange(0, 2*np.pi, 2*np.pi/N_theta_accretion)
+theta_range = np.arange(0, np.pi/2, np.pi/2/N_theta_accretion)
+fi_range = np.arange(0, np.pi/2, np.pi/2/N_fi_accretion)
 
-x = np.cos(fi_range)
-y = np.sin(fi_range)
-x, y = np.meshgrid(x, y)
+r, p = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
+x = r * np.cos(p)
+y = r * np.sin(p)
+z = r * np.cos(theta_range)
+
+# x = np.cos(fi_range)
+# y = np.sin(fi_range)
+# x, y = np.meshgrid(x, y)
+# z, z1 = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
+#
+
 # z = np.sin(theta_range) ** 2
 # z, z1 = np.meshgrid(z, fi_range)
 
-z, z1 = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
+
+# from scipy.interpolate import griddata
+#
+# z = griddata((np.cos(fi_range),np.sin(fi_range)), z, (x, y), method='cubic')
 # ax.plot3D(x, y, z, 'gray')
 
 
