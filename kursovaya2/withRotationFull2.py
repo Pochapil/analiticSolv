@@ -125,9 +125,9 @@ for j in range(N_theta_accretion):
 # t_max = 40  # sec
 
 omega_ns = 8  # скорость вращения НЗ - будет меняться только угол fi_mu!
-t_max = (360 // omega_ns) + (
-    1 if 360 % omega_ns > 0 else 0)  # цикл для поворотов, сколько точек на графике интегралов - для полного поворота
-omega_ns = omega_ns * grad_to_rad
+# цикл для поворотов, сколько точек на графике интегралов - для полного поворота
+t_max = (360 // omega_ns) + (1 if 360 % omega_ns > 0 else 0)
+omega_ns = omega_ns * grad_to_rad  # перевожу в радианы
 
 
 def calculate_integral_distribution(t_max, N_fi_accretion, N_theta_accretion):
@@ -155,10 +155,10 @@ def calculate_integral_distribution(t_max, N_fi_accretion, N_theta_accretion):
         for i in range(N_fi_accretion):
             for j in range(N_theta_accretion):
                 # cos_psi_range[i][j] = np.dot(e_obs_mu, matrix.newE_n(fi_range[i], theta_range[j]))
-                cos_psi_range[i][j] = np.dot(e_obs_mu, array_normal[i * N_theta_accretion + j])
-                if cos_psi_range[i][j] > 0:
-                    sum_intense[i1] += sigmStfBolc * Teff[j] ** 4 * cos_psi_range[i][j] * dS[j]
-                    simps_cos[j] = cos_psi_range[i][j]
+                cos_psi_range[i, j] = np.dot(e_obs_mu, array_normal[i * N_theta_accretion + j])
+                if cos_psi_range[i, j] > 0:
+                    sum_intense[i1] += sigmStfBolc * Teff[j] ** 4 * cos_psi_range[i, j] * dS[j]
+                    simps_cos[j] = cos_psi_range[i, j]
                     # * S=R**2 * step_fi_accretion * step_teta_accretion
                 else:
                     simps_cos[j] = 0
@@ -209,6 +209,7 @@ def plot_map_cos(n_pos, position_of_max, t_max, N_fi_accretion, N_theta_accretio
 
         crf[i1] = axes[row_figure, column_figure].contourf(fi_range, theta_range / grad_to_rad,
                                                            cos_psi_range.transpose(), vmin=-1, vmax=1)
+
         if count_0 > 0:
             cr[i1] = axes[row_figure, column_figure].contour(fi_range, theta_range / grad_to_rad,
                                                              cos_psi_range.transpose(),
@@ -230,7 +231,7 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
     cr = [0] * number_of_plots
 
     fig, axes = plt.subplots(nrows=row_number, ncols=column_number, figsize=(8, 8), subplot_kw={'projection': 'polar'})
-    # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
+
     row_figure = 0
     column_figure = 0
 
@@ -240,16 +241,12 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
 
     fi_mu_max = fi_mu_0 + omega_ns * position_of_max
     for i1 in range(number_of_plots):
+        # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
         fi_mu = fi_mu_max + omega_ns * (t_max // (number_of_plots - 1)) * i1
         # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
         A_matrix_analytic = matrix.newMatrixAnalytic(fi_rotate, betta_rotate, fi_mu, betta_mu)
 
-        # A_matrix_analytic = matrix.newRy(betta_mu) @ matrix.newRz(fi_mu) @ matrix.newRy(betta_rotate) \
-        #                 @ matrix.newRz(fi_rotate)
-
-        # print("analytic matrix:")
-        # print(A_matrix_analytic)
-        count_0 = 0
+        count_0 = 0 # счетчик для контура 0
         e_obs_mu = np.dot(A_matrix_analytic, e_obs)  # переход в магнитную СК
         # e_obs_mu = np.array([0,1,-1])
         for i in range(N_fi_accretion):
@@ -261,6 +258,10 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
         crf[i1] = axes[row_figure, column_figure].contourf(fi_range, theta_range / grad_to_rad,
                                                            cos_psi_range.transpose(), vmin=-1, vmax=1, cmap=cmap,
                                                            norm=normalizer)
+        # попытки для сдвига 0 на картах
+        # axes[row_figure, column_figure].set_ylim(0, theta_range[N_theta_accretion-1]/grad_to_rad)
+        # axes[row_figure, column_figure].set_rorigin(-30)
+        # axes[row_figure, column_figure].set_theta_zero_location('W', offset=50)
         if count_0 > 0:
             cr[i1] = axes[row_figure, column_figure].contour(fi_range, theta_range / grad_to_rad,
                                                              cos_psi_range.transpose(),
@@ -275,6 +276,18 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
 
     plt.subplots_adjust(hspace=0.5, wspace=0.5)
     cbar = fig.colorbar(im, ax=axes[:, :], shrink=0.7, location='right')
+    plt.show()
+
+
+def plot_map_t_eff(T_eff, N_fi_accretion, N_theta_accretion):
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    # fig = plt.figure(figsize=(8, 8), projection="polar")
+    # ax = fig.add_subplot(111)
+    result = np.empty([N_fi_accretion, N_theta_accretion])
+    for i in range(N_fi_accretion):
+        for j in range(N_theta_accretion):
+            result[i, j] = T_eff[j]
+    ax.contourf(fi_range, theta_range / grad_to_rad, result.transpose())
     plt.show()
 
 
@@ -324,16 +337,20 @@ plt.show()
 #
 # ax.plot_trisurf(x, y, z, cmap=cm.jet, linewidth=0, antialiased=False)
 
+
+# plot_map_t_eff(Teff, N_fi_accretion, N_theta_accretion)
+
 fig = plt.figure(figsize=(8, 8))
 ax = plt.axes(projection='3d')
 
 # theta_range = np.arange(0, 2*np.pi, 2*np.pi/N_theta_accretion)
-theta_range = np.arange(0, np.pi/2, np.pi/2/N_theta_accretion)
-fi_range = np.arange(0, np.pi/2, np.pi/2/N_fi_accretion)
+theta_range = np.arange(0, np.pi, np.pi / N_theta_accretion)
+fi_range = np.arange(0, np.pi, np.pi / N_fi_accretion)
 
 r, p = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
-x = r * np.cos(p)
-y = r * np.sin(p)
+r1 = r * np.sin(theta_range)
+x = r1 * np.cos(p)
+y = r1 * np.sin(p)
 z = r * np.cos(theta_range)
 
 # x = np.cos(fi_range)
