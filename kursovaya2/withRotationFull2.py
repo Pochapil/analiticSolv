@@ -8,7 +8,7 @@ import matplotlib.cm as cm
 from matplotlib.colors import Normalize
 
 matplotlib.use("TkAgg")
-import newArgsFunc2 as newArgsFunc
+import newArgsFunc2 as newArgsFunc2
 
 import config  # const
 
@@ -78,9 +78,8 @@ print("delta(R*)/R* = %f" % (delta_distance(theta_accretion_begin) / R_ns))
 
 # t_r = 1200 * a_portion/
 
-Teff, ksiShock = newArgsFunc.get_Teff_distribution(N_theta_accretion, M_accretion_rate, R_e,
-                                                   delta_distance(theta_accretion_begin),
-                                                   A_normal(theta_accretion_begin))
+Teff, ksiShock, L_x = newArgsFunc2.get_Teff_distribution(N_theta_accretion, R_e, delta_distance(theta_accretion_begin),
+                                                         A_normal(theta_accretion_begin))
 # ksiShock = 4.523317
 print("ksiShock :%f" % ksiShock)
 print("Rshock/R*: %f" % ksiShock)
@@ -128,6 +127,14 @@ omega_ns = 8  # скорость вращения НЗ - будет менять
 # цикл для поворотов, сколько точек на графике интегралов - для полного поворота
 t_max = (360 // omega_ns) + (1 if 360 % omega_ns > 0 else 0)
 omega_ns = omega_ns * grad_to_rad  # перевожу в радианы
+
+
+def calculate_total_luminosity(N_fi_accretion, fi_range, theta_range):
+    total_luminosity_step = [0] * N_fi_accretion
+    for i in range(N_fi_accretion):
+        total_luminosity_step[i] = sigmStfBolc * scipy.integrate.simps(Teff ** 4 * dS_simps, theta_range)
+    total_luminosity = scipy.integrate.simps(total_luminosity_step, fi_range)
+    return total_luminosity
 
 
 def calculate_integral_distribution(t_max, N_fi_accretion, N_theta_accretion):
@@ -235,6 +242,7 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
     row_figure = 0
     column_figure = 0
 
+    # для единого колорбара - взял из инета
     cmap = cm.get_cmap('viridis')
     normalizer = Normalize(-1, 1)
     im = cm.ScalarMappable(norm=normalizer)
@@ -246,7 +254,7 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
         # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
         A_matrix_analytic = matrix.newMatrixAnalytic(fi_rotate, betta_rotate, fi_mu, betta_mu)
 
-        count_0 = 0 # счетчик для контура 0
+        count_0 = 0  # счетчик для контура 0 на карте
         e_obs_mu = np.dot(A_matrix_analytic, e_obs)  # переход в магнитную СК
         # e_obs_mu = np.array([0,1,-1])
         for i in range(N_fi_accretion):
@@ -259,8 +267,8 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
                                                            cos_psi_range.transpose(), vmin=-1, vmax=1, cmap=cmap,
                                                            norm=normalizer)
         # попытки для сдвига 0 на картах
-        # axes[row_figure, column_figure].set_ylim(0, theta_range[N_theta_accretion-1]/grad_to_rad)
-        # axes[row_figure, column_figure].set_rorigin(-30)
+        # axes[row_figure, column_figure].set_ylim(theta_range[0]/grad_to_rad, theta_range[N_theta_accretion-1]/grad_to_rad)
+        # axes[row_figure, column_figure].set_rorigin(-theta_accretion_end / grad_to_rad)
         # axes[row_figure, column_figure].set_theta_zero_location('W', offset=50)
         if count_0 > 0:
             cr[i1] = axes[row_figure, column_figure].contour(fi_range, theta_range / grad_to_rad,
@@ -294,6 +302,9 @@ def plot_map_t_eff(T_eff, N_fi_accretion, N_theta_accretion):
 for i in range(t_max):
     print("%d - " % i, end='')
     print(sum_intense[i], sum_simps_integrate[i])
+
+print("BS total luminosity: ", L_x)
+print("Calculated total luminosity: ", calculate_total_luminosity(N_fi_accretion, fi_range, theta_range))
 
 fi_for_plot = list(omega_ns * i / (2 * np.pi) for i in range(t_max))
 fig = plt.figure(figsize=(8, 8))

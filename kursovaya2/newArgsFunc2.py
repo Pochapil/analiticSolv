@@ -4,10 +4,11 @@ import scipy.special as special
 import config  # const
 
 
-def get_Teff_distribution(number_of_steps, m_accretion_rate, R_e, delta_ns, A_normal):
+def get_Teff_distribution(number_of_steps, R_e, delta_ns, A_normal):
     # решение зависит от n размера пространства !!! взял n=3 везде
     # Parameters
     # const
+    M_accretion_rate = config.M_accretion_rate
     MSun = config.MSun  # масса молнца г
     G = config.G  # гравитационная постоянная см3·с−2·г−1
     c = config.c  # скорость света см/с
@@ -46,7 +47,7 @@ def get_Teff_distribution(number_of_steps, m_accretion_rate, R_e, delta_ns, A_no
     # eta = 16.7477  # взял из сообщения в телеге
 
     # 44 формула статья
-    gamma = (c * R_ns * A_normal * 3) / (k * delta_ns ** 2 * m_accretion_rate * 2 * ksi_rad)
+    gamma = (c * R_ns * A_normal * 3) / (k * delta_ns ** 2 * M_accretion_rate * 2 * ksi_rad)
     # 45 формула статья
     eta = ((8 * k * u0 * delta_ns ** 2 * 2 * ksi_rad) / (21 * c * (2 * G * M_ns * R_ns) ** (1 / 2) * 3)) ** (1 / 4)
 
@@ -148,5 +149,9 @@ def get_Teff_distribution(number_of_steps, m_accretion_rate, R_e, delta_ns, A_no
     # получаем эффективную температуру из закона Стефана-Больцмана
     Teff = (fTheta() / sigmStfBolc) ** (1 / 4)
     Teffbs = (fThetabs(ksi_bs) / sigmStfBolc) ** (1 / 4)
+
+    # формула 37, 1 - полная светимость
+    L_x = (1 - betta) * M_accretion_rate * G * M_ns / R_ns
+
     print("bettaBS = %f" % betta)
-    return Teff, ksiShock
+    return Teff, ksiShock, L_x
