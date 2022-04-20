@@ -330,33 +330,25 @@ plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accretion,
 
 plt.show()
 
-# from mpl_toolkits.mplot3d import Axes3D
-#
-# ax = Axes3D(fig)
-#
-# x = y = z = np.zeros((N_fi_accretion, N_theta_accretion))
-#
-# for i in range(N_theta_accretion):
-#     for j in range(N_fi_accretion):
-#         x[i, j] = np.cos(fi_range[j])
-#         y[i, j] = np.sin(fi_range[j])
-#         z[i, j] = np.sin(theta_range[i]) ** 2  # bell curve
-#
-# x = x.flatten()
-# y = y.flatten()
-# z = z.flatten()
-#
-# ax.plot_trisurf(x, y, z, cmap=cm.jet, linewidth=0, antialiased=False)
-
-
-# plot_map_t_eff(Teff, N_fi_accretion, N_theta_accretion)
-
+# рисуем 3D
 fig = plt.figure(figsize=(8, 8))
 ax = plt.axes(projection='3d')
 
-# theta_range = np.arange(0, 2*np.pi, 2*np.pi/N_theta_accretion)
+# рисуем звезду
 theta_range = np.arange(0, np.pi, np.pi / N_theta_accretion)
-fi_range = np.arange(0, np.pi, np.pi / N_fi_accretion)
+fi_range = np.arange(0, 2 * np.pi, np.pi / N_fi_accretion)
+
+u, v = np.meshgrid(fi_range, theta_range)
+r1 = np.sin(theta_accretion_begin) ** 2
+x = r1 * np.sin(v) * np.cos(u)
+y = r1 * np.sin(v) * np.sin(u)
+z = r1 * np.cos(v)
+
+ax.plot_surface(x, y, z, color='b', alpha=1)
+
+# рисуем силовые линии
+theta_range = np.arange(0, np.pi, np.pi / N_theta_accretion)
+fi_range = np.arange(0, 2 * np.pi, np.pi / N_fi_accretion)
 
 r, p = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
 r1 = r * np.sin(theta_range)
@@ -364,22 +356,8 @@ x = r1 * np.cos(p)
 y = r1 * np.sin(p)
 z = r * np.cos(theta_range)
 
-# x = np.cos(fi_range)
-# y = np.sin(fi_range)
-# x, y = np.meshgrid(x, y)
-# z, z1 = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
-#
+ax.plot_wireframe(x, y, z, color="r", alpha=0.2)
+# ax.plot_surface(x, y, z, cmap=plt.cm.YlGnBu_r)
 
-# z = np.sin(theta_range) ** 2
-# z, z1 = np.meshgrid(z, fi_range)
-
-
-# from scipy.interpolate import griddata
-#
-# z = griddata((np.cos(fi_range),np.sin(fi_range)), z, (x, y), method='cubic')
-# ax.plot3D(x, y, z, 'gray')
-
-
-ax.plot_surface(x, y, z, cmap=plt.cm.YlGnBu_r)
-
+ax.set_zlim([-1,1])
 plt.show()
