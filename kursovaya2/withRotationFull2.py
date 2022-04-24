@@ -299,6 +299,94 @@ def plot_map_t_eff(T_eff, N_fi_accretion, N_theta_accretion):
     plt.show()
 
 
+def analytic_integral_phi(theta, e_obs):
+    # мб нужно поднять чтобы не считать углы наблюдателя, а посчитать 1 раз
+    x = e_obs[0, 0]
+    y = e_obs[0, 1]
+    z = e_obs[0, 2]
+    theta_obs = np.arccos(z)  # np.arccos(z/r)
+    if x > 0:
+        if y >= 0:
+            phi_obs = np.arctan(y / x)
+        else:
+            phi_obs = np.arctan(y / x) + 2 * np.pi
+    else:
+        phi_obs = np.arctan(y / x) + np.pi
+
+    def get_limit_delta_phi(theta, theta_obs):
+
+        lim = 3 * np.sin(theta) * np.cos(theta) / (1 - 3 * np.cos(theta) ** 2) * np.cos(theta_obs) / np.sin(theta_obs)
+
+        if lim >= 1:
+            return 0
+        if lim <= -1:
+            return 2 * np.pi
+        return np.arccos(lim)
+
+    return get_limit_delta_phi(theta, theta_obs)  # arccos < delta_phi < 2 pi - arccos
+
+
+def plot_map_delta_phi(position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number):
+    number_of_plots = row_number * column_number
+
+    crf = [0] * number_of_plots
+    cr = [0] * number_of_plots
+
+    fig, axes = plt.subplots(nrows=row_number, ncols=column_number, figsize=(8, 8), subplot_kw={'projection': 'polar'})
+
+    row_figure = 0
+    column_figure = 0
+
+    # для единого колорбара - взял из инета
+    cmap = cm.get_cmap('viridis')
+    normalizer = Normalize(-1, 1)
+    im = cm.ScalarMappable(norm=normalizer)
+
+    fi_mu_max = fi_mu_0 + omega_ns * position_of_max
+    for i1 in range(number_of_plots):
+        # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
+        fi_mu = fi_mu_max + omega_ns * (t_max // (number_of_plots - 1)) * i1
+        # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
+        A_matrix_analytic = matrix.newMatrixAnalytic(fi_rotate, betta_rotate, fi_mu, betta_mu)
+        e_obs_mu = np.dot(A_matrix_analytic, e_obs)  # переход в магнитную СК
+
+        x = e_obs_mu[0, 0]
+        y = e_obs_mu[0, 1]
+        z = e_obs_mu[0, 2]
+        if x > 0:
+            if y >= 0:
+                phi_obs = np.arctan(y / x)
+            else:
+                phi_obs = np.arctan(y / x) + 2 * np.pi
+        else:
+            phi_obs = np.arctan(y / x) + np.pi
+
+        for j in range(N_theta_accretion):
+            delta_phi_lim = analytic_integral_phi(theta_range[j], e_obs_mu)
+            for i in range(N_fi_accretion):
+                if (fi_range[i] > delta_phi_lim) and (fi_range[i] < 2 * np.pi - delta_phi_lim):
+                    cos_psi_range[j][i] = 1
+                else:
+                    cos_psi_range[j][i] = 0
+        crf[i1] = axes[row_figure, column_figure].contourf(fi_range, theta_range / grad_to_rad,
+                                                           cos_psi_range, vmin=-1, vmax=1, cmap=cmap,
+                                                           norm=normalizer)
+        axes[row_figure, column_figure].set_title(
+            "phase = %.2f" % (omega_ns * (t_max // (number_of_plots - 1)) * i1 / (2 * np.pi)))
+
+        # axes[row_figure, column_figure].set_theta_zero_location('E', offset=phi_obs/grad_to_rad)
+        axes[row_figure, column_figure].set_theta_offset(np.pi + phi_obs)
+
+        column_figure += 1
+        if column_figure == column_number:
+            column_figure = 0
+            row_figure += 1
+
+    plt.subplots_adjust(hspace=0.5, wspace=0.5)
+    cbar = fig.colorbar(im, ax=axes[:, :], shrink=0.7, location='right')
+    plt.show()
+
+
 for i in range(t_max):
     print("%d - " % i, end='')
     print(sum_intense[i], sum_simps_integrate[i])
@@ -327,6 +415,7 @@ row_number = 2
 column_number = 3
 # plot_map_cos(n_pos, position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number)
 plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number)
+plot_map_delta_phi(position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number)
 
 plt.show()
 
@@ -336,7 +425,7 @@ ax = plt.axes(projection='3d')
 
 # рисуем звезду
 theta_range = np.arange(0, np.pi, np.pi / N_theta_accretion)
-fi_range = np.arange(0, 2 * np.pi, np.pi / N_fi_accretion)
+fi_range = np.arange(0, 2 * np.pi, 2 * np.pi / N_fi_accretion)
 
 u, v = np.meshgrid(fi_range, theta_range)
 r1 = np.sin(theta_accretion_begin) ** 2
@@ -348,7 +437,7 @@ ax.plot_surface(x, y, z, color='b', alpha=1)
 
 # рисуем силовые линии
 theta_range = np.arange(0, np.pi, np.pi / N_theta_accretion)
-fi_range = np.arange(0, 2 * np.pi, np.pi / N_fi_accretion)
+fi_range = np.arange(0, 1 / 2 * np.pi, 1 / 2 * np.pi / N_fi_accretion)
 
 r, p = np.meshgrid(np.sin(theta_range) ** 2, fi_range)
 r1 = r * np.sin(theta_range)
@@ -356,8 +445,10 @@ x = r1 * np.cos(p)
 y = r1 * np.sin(p)
 z = r * np.cos(theta_range)
 
-ax.plot_wireframe(x, y, z, color="r", alpha=0.2)
+ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color="r", alpha=0.2)
 # ax.plot_surface(x, y, z, cmap=plt.cm.YlGnBu_r)
 
-ax.set_zlim([-1,1])
+ax.set_xlim([-1, 1])
+ax.set_ylim([-1, 1])
+ax.set_zlim([-1, 1])
 plt.show()
