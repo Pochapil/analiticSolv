@@ -81,7 +81,7 @@ print("delta(R*)/R* = %f" % (delta_distance(theta_accretion_begin) / R_ns))
 Teff, ksiShock, L_x = newArgsFunc2.get_Teff_distribution(N_theta_accretion, R_e, delta_distance(theta_accretion_begin),
                                                          A_normal(theta_accretion_begin))
 # ksiShock = 4.523317
-print("ksiShock :%f" % ksiShock)
+print("ksiShock: %f" % ksiShock)
 print("Rshock/R*: %f" % ksiShock)
 print("t2.3  %f" % (G * M_ns * M_accretion_rate / (R_ns * config.L_edd)))
 # print("arcsin begin: %f" % (R_ns / R_e) ** (1 / 2))
@@ -299,11 +299,10 @@ def plot_map_t_eff(T_eff, N_fi_accretion, N_theta_accretion):
     plt.show()
 
 
-def analytic_integral_phi(theta, e_obs):
-    # мб нужно поднять чтобы не считать углы наблюдателя, а посчитать 1 раз
-    x = e_obs[0, 0]
-    y = e_obs[0, 1]
-    z = e_obs[0, 2]
+def get_angles_from_vector(vector):
+    x = vector[0, 0]
+    y = vector[0, 1]
+    z = vector[0, 2]
     theta_obs = np.arccos(z)  # np.arccos(z/r)
     if x > 0:
         if y >= 0:
@@ -312,15 +311,23 @@ def analytic_integral_phi(theta, e_obs):
             phi_obs = np.arctan(y / x) + 2 * np.pi
     else:
         phi_obs = np.arctan(y / x) + np.pi
+    return phi_obs, theta_obs
+
+
+def analytic_integral_phi(theta, e_obs):
+    # мб нужно поднять чтобы не считать углы наблюдателя, а посчитать 1 раз
+    phi_obs, theta_obs = get_angles_from_vector(e_obs)
 
     def get_limit_delta_phi(theta, theta_obs):
-
-        lim = 3 * np.sin(theta) * np.cos(theta) / (1 - 3 * np.cos(theta) ** 2) * np.cos(theta_obs) / np.sin(theta_obs)
-
+        divider = (1 - 3 * np.cos(theta) ** 2) * np.sin(theta_obs)
+        lim = - 3 * np.sin(theta) * np.cos(theta) * np.cos(theta_obs) / divider
+        if divider > 0:
+            lim = -lim
+        # (fi_range[i] >= delta_phi_lim) and (fi_range[i] <= 2 * np.pi - delta_phi_lim)
         if lim >= 1:
-            return 0
+            return 0  # любой угол будет больше 0 и меньше 2 * np.pi
         if lim <= -1:
-            return 2 * np.pi
+            return 2 * np.pi  # все углы будут меньше 2 * np.pi и 1 скобка даст false
         return np.arccos(lim)
 
     return get_limit_delta_phi(theta, theta_obs)  # arccos < delta_phi < 2 pi - arccos
@@ -350,24 +357,15 @@ def plot_map_delta_phi(position_of_max, t_max, N_fi_accretion, N_theta_accretion
         A_matrix_analytic = matrix.newMatrixAnalytic(fi_rotate, betta_rotate, fi_mu, betta_mu)
         e_obs_mu = np.dot(A_matrix_analytic, e_obs)  # переход в магнитную СК
 
-        x = e_obs_mu[0, 0]
-        y = e_obs_mu[0, 1]
-        z = e_obs_mu[0, 2]
-        if x > 0:
-            if y >= 0:
-                phi_obs = np.arctan(y / x)
-            else:
-                phi_obs = np.arctan(y / x) + 2 * np.pi
-        else:
-            phi_obs = np.arctan(y / x) + np.pi
-
+        phi_obs, theta_obs = get_angles_from_vector(e_obs_mu)
+        print("theta_obs%d = %f" % (i1, theta_obs))
         for j in range(N_theta_accretion):
             delta_phi_lim = analytic_integral_phi(theta_range[j], e_obs_mu)
             for i in range(N_fi_accretion):
-                if (fi_range[i] > delta_phi_lim) and (fi_range[i] < 2 * np.pi - delta_phi_lim):
+                if (fi_range[i] >= delta_phi_lim) and (fi_range[i] <= 2 * np.pi - delta_phi_lim):
                     cos_psi_range[j][i] = 1
                 else:
-                    cos_psi_range[j][i] = 0
+                    cos_psi_range[j][i] = -1
         crf[i1] = axes[row_figure, column_figure].contourf(fi_range, theta_range / grad_to_rad,
                                                            cos_psi_range, vmin=-1, vmax=1, cmap=cmap,
                                                            norm=normalizer)
