@@ -114,10 +114,11 @@ dS_simps = []
 # формула 5 из статьи для dl
 for j in range(N_theta_accretion):
     dl = R_e * (3 * np.cos(theta_range[j]) ** 2 + 1) ** (1 / 2) * np.sin(theta_range[j]) * step_theta_accretion
-    dl_simps = R_e * (3 * np.cos(theta_range[j]) ** 2 + 1) ** (1 / 2) * np.sin(theta_range[j])
     dfi = R_e * np.sin(theta_range[j]) ** 3 * step_fi_accretion  # R=R_e * sin_theta ** 2; R_fi = R * sin_theta
-    dfi_simps = R_e * np.sin(theta_range[j]) ** 3
     dS.append(dfi * dl)  # единичная площадка при интегрировании
+    # аналогично для интеграла по симпсону
+    dl_simps = R_e * (3 * np.cos(theta_range[j]) ** 2 + 1) ** (1 / 2) * np.sin(theta_range[j])
+    dfi_simps = R_e * np.sin(theta_range[j]) ** 3
     dS_simps.append(dfi_simps * dl_simps)
 
 # цикл для поворотов, сколько точек на графике интегралов
@@ -127,6 +128,40 @@ omega_ns = 8  # скорость вращения НЗ - будет менять
 # цикл для поворотов, сколько точек на графике интегралов - для полного поворота
 t_max = (360 // omega_ns) + (1 if 360 % omega_ns > 0 else 0)
 omega_ns = omega_ns * grad_to_rad  # перевожу в радианы
+
+
+def get_angles_from_vector(vector):
+    x = vector[0, 0]
+    y = vector[0, 1]
+    z = vector[0, 2]
+    theta_obs = np.arccos(z)  # np.arccos(z/r)
+    if x > 0:
+        if y >= 0:
+            phi_obs = np.arctan(y / x)
+        else:
+            phi_obs = np.arctan(y / x) + 2 * np.pi
+    else:
+        phi_obs = np.arctan(y / x) + np.pi
+    return phi_obs, theta_obs
+
+
+def get_lim_for_analytic_integral_phi(theta, e_obs):
+    # мб нужно поднять чтобы не считать углы наблюдателя, а посчитать 1 раз
+    phi_obs, theta_obs = get_angles_from_vector(e_obs)
+
+    def get_limit_delta_phi(theta, theta_obs):
+        divider = (1 - 3 * np.cos(theta) ** 2) * np.sin(theta_obs)
+        lim = - 3 * np.sin(theta) * np.cos(theta) * np.cos(theta_obs) / divider
+        if divider > 0:
+            lim = -lim
+        # (fi_range[i] >= delta_phi_lim) and (fi_range[i] <= 2 * np.pi - delta_phi_lim) - условие
+        if lim >= 1:
+            return 0  # любой угол будет больше 0 и меньше 2 * np.pi
+        if lim <= -1:
+            return 2 * np.pi  # все углы будут меньше 2 * np.pi и 1 скобка даст false
+        return np.arccos(lim)
+
+    return get_limit_delta_phi(theta, theta_obs)  # arccos < delta_phi < 2 pi - arccos
 
 
 def calculate_total_luminosity(N_fi_accretion, fi_range, theta_range):
@@ -141,10 +176,15 @@ def calculate_integral_distribution(t_max, N_fi_accretion, N_theta_accretion):
     integral_max = 0
     # sum_intense изотропная светимость ( * 4 pi еще надо)
     sum_intense = [0] * t_max
+
     # для интеграла по simpson
     sum_simps_integrate = [0] * t_max
     simps_integrate_step = [0] * N_fi_accretion
     simps_cos = [0] * N_theta_accretion  # cos для интеграла по симпсону
+
+    # для аналитического интеграла
+    fi_begin = [0] * N_theta_accretion
+    analytic_integral_phi = [0] * t_max
     for i1 in range(t_max):
         # поворот
         fi_mu = fi_mu_0 + omega_ns * i1
@@ -161,12 +201,12 @@ def calculate_integral_distribution(t_max, N_fi_accretion, N_theta_accretion):
         # sum_intense изотропная светимость ( * 4 pi еще надо)
         for i in range(N_fi_accretion):
             for j in range(N_theta_accretion):
-                # cos_psi_range[i][j] = np.dot(e_obs_mu, matrix.newE_n(fi_range[i], theta_range[j]))
+                # cos_psi_range[i][j] = np.dot(e_obs_mu, matrix.newE_n(fi_range[i], theta_range[j])) # неэффективно
                 cos_psi_range[i, j] = np.dot(e_obs_mu, array_normal[i * N_theta_accretion + j])
                 if cos_psi_range[i, j] > 0:
                     sum_intense[i1] += sigmStfBolc * Teff[j] ** 4 * cos_psi_range[i, j] * dS[j]
                     simps_cos[j] = cos_psi_range[i, j]
-                    # * S=R**2 * step_fi_accretion * step_teta_accretion
+                    # * S=R**2 * step_fi_accretion * step_theta_accretion
                 else:
                     simps_cos[j] = 0
 
@@ -177,11 +217,26 @@ def calculate_integral_distribution(t_max, N_fi_accretion, N_theta_accretion):
             integral_max = sum_intense[i1]
 
         sum_simps_integrate[i1] = scipy.integrate.simps(simps_integrate_step, fi_range)
-    return sum_intense, sum_simps_integrate, position_of_max
+
+        for j in range(N_theta_accretion):
+            fi_begin[j] = get_lim_for_analytic_integral_phi(theta_range[j], e_obs_mu)  # считаем границы для интеграла
+
+        phi_obs, theta_obs = get_angles_from_vector(e_obs_mu)
+
+        L1 = (1 - 3 * np.array(np.cos(theta_range) ** 2)) * np.array(np.sin(theta_obs)) * (
+                    np.array(np.sin(2 * np.pi - np.array(fi_begin))) - np.array(np.sin(fi_begin))) + 3 * np.sin(
+            theta_range) * np.cos(theta_range) * np.cos(theta_obs) * 2 * (np.pi - np.array(fi_begin))
+
+        L = sigmStfBolc * Teff ** 4 * R_e ** 2 * np.sin(theta_range) ** 4 * L1
+        analytic_integral_phi[i1] = scipy.integrate.simps(L, theta_range)
+
+    return sum_intense, sum_simps_integrate, analytic_integral_phi, position_of_max
 
 
-sum_intense, sum_simps_integrate, position_of_max = calculate_integral_distribution(t_max, N_fi_accretion,
-                                                                                    N_theta_accretion)
+sum_intense, sum_simps_integrate, analytic_integral_phi, position_of_max = calculate_integral_distribution(t_max,
+                                                                                                           N_fi_accretion,
+                                                                                                           N_theta_accretion)
+
 print("max: %d" % position_of_max)
 
 
@@ -299,40 +354,6 @@ def plot_map_t_eff(T_eff, N_fi_accretion, N_theta_accretion):
     plt.show()
 
 
-def get_angles_from_vector(vector):
-    x = vector[0, 0]
-    y = vector[0, 1]
-    z = vector[0, 2]
-    theta_obs = np.arccos(z)  # np.arccos(z/r)
-    if x > 0:
-        if y >= 0:
-            phi_obs = np.arctan(y / x)
-        else:
-            phi_obs = np.arctan(y / x) + 2 * np.pi
-    else:
-        phi_obs = np.arctan(y / x) + np.pi
-    return phi_obs, theta_obs
-
-
-def analytic_integral_phi(theta, e_obs):
-    # мб нужно поднять чтобы не считать углы наблюдателя, а посчитать 1 раз
-    phi_obs, theta_obs = get_angles_from_vector(e_obs)
-
-    def get_limit_delta_phi(theta, theta_obs):
-        divider = (1 - 3 * np.cos(theta) ** 2) * np.sin(theta_obs)
-        lim = - 3 * np.sin(theta) * np.cos(theta) * np.cos(theta_obs) / divider
-        if divider > 0:
-            lim = -lim
-        # (fi_range[i] >= delta_phi_lim) and (fi_range[i] <= 2 * np.pi - delta_phi_lim) - условие
-        if lim >= 1:
-            return 0  # любой угол будет больше 0 и меньше 2 * np.pi
-        if lim <= -1:
-            return 2 * np.pi  # все углы будут меньше 2 * np.pi и 1 скобка даст false
-        return np.arccos(lim)
-
-    return get_limit_delta_phi(theta, theta_obs)  # arccos < delta_phi < 2 pi - arccos
-
-
 def plot_map_delta_phi(position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number):
     number_of_plots = row_number * column_number
 
@@ -359,7 +380,7 @@ def plot_map_delta_phi(position_of_max, t_max, N_fi_accretion, N_theta_accretion
         phi_obs, theta_obs = get_angles_from_vector(e_obs_mu)
         print("theta_obs%d = %f" % (i1, theta_obs))
         for j in range(N_theta_accretion):
-            delta_phi_lim = analytic_integral_phi(theta_range[j], e_obs_mu)
+            delta_phi_lim = get_lim_for_analytic_integral_phi(theta_range[j], e_obs_mu)
             for i in range(N_fi_accretion):
                 if (fi_range[i] >= delta_phi_lim) and (fi_range[i] <= 2 * np.pi - delta_phi_lim):
                     cos_psi_range[j][i] = 1
@@ -398,6 +419,8 @@ ax3 = fig.add_subplot(111)
 # ax3.plot(fi_for_plot, np.append(sum_intense[position_of_max:], sum_intense[0:position_of_max]), 'b', label='rectangle')
 ax3.plot(fi_for_plot, np.append(sum_simps_integrate[position_of_max:], sum_simps_integrate[0:position_of_max]), 'r',
          label='simps')
+ax3.plot(fi_for_plot, np.append(analytic_integral_phi[position_of_max:], analytic_integral_phi[0:position_of_max]), 'b',
+         label='phi_integrate')
 ax3.set_xlabel('phase')
 ax3.set_ylabel("isotropic luminosity, erg/s")
 ax3.legend()
