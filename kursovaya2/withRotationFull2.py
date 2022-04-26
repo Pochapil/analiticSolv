@@ -250,7 +250,7 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
     fi_mu_max = fi_mu_0 + omega_ns * position_of_max
     for i1 in range(number_of_plots):
         # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
-        fi_mu = fi_mu_max + omega_ns * (t_max // (number_of_plots - 1)) * i1
+        fi_mu = fi_mu_max + omega_ns * (t_max / (number_of_plots - 1)) * i1
         # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
         A_matrix_analytic = matrix.newMatrixAnalytic(fi_rotate, betta_rotate, fi_mu, betta_mu)
 
@@ -276,7 +276,7 @@ def plot_map_cos_in_range(position_of_max, t_max, N_fi_accretion, N_theta_accret
                                                              [0.], colors='w')
 
         axes[row_figure, column_figure].set_title(
-            "phase = %.2f" % (omega_ns * (t_max // (number_of_plots - 1)) * i1 / (2 * np.pi)))
+            "phase = %.2f" % (omega_ns * (t_max / (number_of_plots - 1)) * i1 / (2 * np.pi)))
         column_figure += 1
         if column_figure == column_number:
             column_figure = 0
@@ -323,7 +323,7 @@ def analytic_integral_phi(theta, e_obs):
         lim = - 3 * np.sin(theta) * np.cos(theta) * np.cos(theta_obs) / divider
         if divider > 0:
             lim = -lim
-        # (fi_range[i] >= delta_phi_lim) and (fi_range[i] <= 2 * np.pi - delta_phi_lim)
+        # (fi_range[i] >= delta_phi_lim) and (fi_range[i] <= 2 * np.pi - delta_phi_lim) - условие
         if lim >= 1:
             return 0  # любой угол будет больше 0 и меньше 2 * np.pi
         if lim <= -1:
@@ -337,7 +337,6 @@ def plot_map_delta_phi(position_of_max, t_max, N_fi_accretion, N_theta_accretion
     number_of_plots = row_number * column_number
 
     crf = [0] * number_of_plots
-    cr = [0] * number_of_plots
 
     fig, axes = plt.subplots(nrows=row_number, ncols=column_number, figsize=(8, 8), subplot_kw={'projection': 'polar'})
 
@@ -352,7 +351,7 @@ def plot_map_delta_phi(position_of_max, t_max, N_fi_accretion, N_theta_accretion
     fi_mu_max = fi_mu_0 + omega_ns * position_of_max
     for i1 in range(number_of_plots):
         # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
-        fi_mu = fi_mu_max + omega_ns * (t_max // (number_of_plots - 1)) * i1
+        fi_mu = fi_mu_max + omega_ns * (t_max / (number_of_plots - 1)) * i1
         # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
         A_matrix_analytic = matrix.newMatrixAnalytic(fi_rotate, betta_rotate, fi_mu, betta_mu)
         e_obs_mu = np.dot(A_matrix_analytic, e_obs)  # переход в магнитную СК
@@ -370,7 +369,7 @@ def plot_map_delta_phi(position_of_max, t_max, N_fi_accretion, N_theta_accretion
                                                            cos_psi_range, vmin=-1, vmax=1, cmap=cmap,
                                                            norm=normalizer)
         axes[row_figure, column_figure].set_title(
-            "phase = %.2f" % (omega_ns * (t_max // (number_of_plots - 1)) * i1 / (2 * np.pi)))
+            "phase = %.2f" % (omega_ns * (t_max / (number_of_plots - 1)) * i1 / (2 * np.pi)))
 
         # axes[row_figure, column_figure].set_theta_zero_location('E', offset=phi_obs/grad_to_rad)
         axes[row_figure, column_figure].set_theta_offset(np.pi + phi_obs)
