@@ -393,7 +393,7 @@ def plot_map_delta_phi(position_of_max, t_max, N_fi_accretion, N_theta_accretion
             "phase = %.2f" % (omega_ns * (t_max / (number_of_plots - 1)) * i1 / (2 * np.pi)))
 
         # axes[row_figure, column_figure].set_theta_zero_location('E', offset=phi_obs/grad_to_rad)
-        axes[row_figure, column_figure].set_theta_offset(np.pi + phi_obs)
+        axes[row_figure, column_figure].set_theta_offset(phi_obs)
 
         column_figure += 1
         if column_figure == column_number:
@@ -430,7 +430,6 @@ plt.yscale('log')
 print(M_accretion_rate)
 print(H)
 
-n_pos = 10
 row_number = 2
 column_number = 3
 # plot_map_cos(n_pos, position_of_max, t_max, N_fi_accretion, N_theta_accretion, row_number, column_number)
