@@ -224,7 +224,7 @@ def calculate_integral_distribution(t_max, N_phi_accretion, N_theta_accretion):
         phi_obs, theta_obs = get_angles_from_vector(e_obs_mu)
 
         L1 = (1 - 3 * np.array(np.cos(theta_range) ** 2)) * np.array(np.sin(theta_obs)) * (
-                    np.array(np.sin(2 * np.pi - np.array(phi_begin))) - np.array(np.sin(phi_begin))) + 3 * np.sin(
+                np.array(np.sin(2 * np.pi - np.array(phi_begin))) - np.array(np.sin(phi_begin))) + 3 * np.sin(
             theta_range) * np.cos(theta_range) * np.cos(theta_obs) * 2 * (np.pi - np.array(phi_begin))
 
         L = sigmStfBolc * Teff ** 4 * R_e ** 2 * np.sin(theta_range) ** 4 * L1
@@ -323,7 +323,16 @@ def plot_map_cos_in_range(position_of_max, t_max, N_phi_accretion, N_theta_accre
                                                            norm=normalizer)
         # попытки для сдвига 0 на картах
         # axes[row_figure, column_figure].set_ylim(theta_range[0]/grad_to_rad, theta_range[N_theta_accretion-1]/grad_to_rad)
-        # axes[row_figure, column_figure].set_rorigin(-theta_accretion_end / grad_to_rad)
+        axes[row_figure, column_figure].set_rorigin(-theta_accretion_begin)
+
+        axes[row_figure, column_figure].set_yticks([(theta_range[0] / grad_to_rad),
+                                                    (theta_range[N_theta_accretion // 2] / grad_to_rad),
+                                                    (theta_range[-1] / grad_to_rad)])
+
+        axes[row_figure, column_figure].set_yticklabels([round(theta_range[0] / grad_to_rad, 1),
+                                                         round(theta_range[N_theta_accretion // 2] / grad_to_rad, 1),
+                                                         round(theta_range[-1] / grad_to_rad, 1)])
+
         # axes[row_figure, column_figure].set_theta_zero_location('W', offset=50)
         if count_0 > 0:
             cr[i1] = axes[row_figure, column_figure].contour(phi_range, theta_range / grad_to_rad,
@@ -395,6 +404,8 @@ def plot_map_delta_phi(position_of_max, t_max, N_phi_accretion, N_theta_accretio
         # axes[row_figure, column_figure].set_theta_zero_location('E', offset=phi_obs/grad_to_rad)
         axes[row_figure, column_figure].set_theta_offset(phi_obs)
 
+        axes[row_figure, column_figure].set_rorigin(-theta_accretion_begin)
+
         column_figure += 1
         if column_figure == column_number:
             column_figure = 0
@@ -419,7 +430,8 @@ ax3 = fig.add_subplot(111)
 # ax3.plot(phi_for_plot, np.append(sum_intense[position_of_max:], sum_intense[0:position_of_max]), 'b', label='rectangle')
 ax3.plot(phi_for_plot, np.append(sum_simps_integrate[position_of_max:], sum_simps_integrate[0:position_of_max]), 'r',
          label='simps')
-ax3.plot(phi_for_plot, np.append(analytic_integral_phi[position_of_max:], analytic_integral_phi[0:position_of_max]), 'b',
+ax3.plot(phi_for_plot, np.append(analytic_integral_phi[position_of_max:], analytic_integral_phi[0:position_of_max]),
+         'b',
          label='phi_integrate')
 ax3.set_xlabel('phase')
 ax3.set_ylabel("isotropic luminosity, erg/s")
