@@ -130,10 +130,10 @@ t_max = (360 // omega_ns) + (1 if 360 % omega_ns > 0 else 0)
 omega_ns = omega_ns * grad_to_rad  # перевожу в радианы
 
 
-def get_angles_from_vector(vector):
-    x = vector[0, 0]
-    y = vector[0, 1]
-    z = vector[0, 2]
+def get_angles_from_vector(e_obs):
+    x = e_obs[0, 0]
+    y = e_obs[0, 1]
+    z = e_obs[0, 2]
     theta_obs = np.arccos(z)  # np.arccos(z/r)
     if x > 0:
         if y >= 0:
@@ -158,7 +158,8 @@ def get_lim_for_analytic_integral_phi(theta, e_obs):
         if lim >= 1:
             return 0  # любой угол будет больше 0 и меньше 2 * np.pi
         if lim <= -1:
-            return 2 * np.pi  # все углы будут меньше 2 * np.pi и 1 скобка даст false
+            # чтобы интеграл дал 0 нужно pi: от pi до 2 pi - pi
+            return np.pi  # все углы будут меньше 2 * np.pi и 1 скобка даст false
         return np.arccos(lim)
 
     return get_limit_delta_phi(theta, theta_obs)  # arccos < delta_phi < 2 pi - arccos
@@ -219,7 +220,8 @@ def calculate_integral_distribution(t_max, N_phi_accretion, N_theta_accretion):
         sum_simps_integrate[i1] = scipy.integrate.simps(simps_integrate_step, phi_range)
 
         for j in range(N_theta_accretion):
-            lim_phi_begin[j] = get_lim_for_analytic_integral_phi(theta_range[j], e_obs_mu)  # считаем границы для интеграла
+            lim_phi_begin[j] = get_lim_for_analytic_integral_phi(theta_range[j],
+                                                                 e_obs_mu)  # считаем границы для интеграла
 
         phi_obs, theta_obs = get_angles_from_vector(e_obs_mu)
 
