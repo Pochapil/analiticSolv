@@ -183,7 +183,7 @@ def calculate_integral_distribution(t_max, N_phi_accretion, N_theta_accretion):
     simps_cos = [0] * N_theta_accretion  # cos для интеграла по симпсону
 
     # для аналитического интеграла
-    phi_begin = [0] * N_theta_accretion
+    lim_phi_begin = [0] * N_theta_accretion
     analytic_integral_phi = [0] * t_max
     for i1 in range(t_max):
         # поворот
@@ -219,13 +219,13 @@ def calculate_integral_distribution(t_max, N_phi_accretion, N_theta_accretion):
         sum_simps_integrate[i1] = scipy.integrate.simps(simps_integrate_step, phi_range)
 
         for j in range(N_theta_accretion):
-            phi_begin[j] = get_lim_for_analytic_integral_phi(theta_range[j], e_obs_mu)  # считаем границы для интеграла
+            lim_phi_begin[j] = get_lim_for_analytic_integral_phi(theta_range[j], e_obs_mu)  # считаем границы для интеграла
 
         phi_obs, theta_obs = get_angles_from_vector(e_obs_mu)
 
         L1 = (1 - 3 * np.array(np.cos(theta_range) ** 2)) * np.array(np.sin(theta_obs)) * (
-                np.array(np.sin(2 * np.pi - np.array(phi_begin))) - np.array(np.sin(phi_begin))) + 3 * np.sin(
-            theta_range) * np.cos(theta_range) * np.cos(theta_obs) * 2 * (np.pi - np.array(phi_begin))
+                np.array(np.sin(2 * np.pi - np.array(lim_phi_begin))) - np.array(np.sin(lim_phi_begin))) + 3 * np.sin(
+            theta_range) * np.cos(theta_range) * np.cos(theta_obs) * 2 * (np.pi - np.array(lim_phi_begin))
 
         L = sigmStfBolc * Teff ** 4 * R_e ** 2 * np.sin(theta_range) ** 4 * L1
         analytic_integral_phi[i1] = scipy.integrate.simps(L, theta_range)
@@ -301,10 +301,10 @@ def plot_map_cos_in_range(position_of_max, t_max, N_phi_accretion, N_theta_accre
     cmap = cm.get_cmap('viridis')
     normalizer = Normalize(-1, 1)
     im = cm.ScalarMappable(norm=normalizer)
-
+    # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
     phi_mu_max = phi_mu_0 + omega_ns * position_of_max
     for i1 in range(number_of_plots):
-        # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
+        # поворот на угол
         phi_mu = phi_mu_max + omega_ns * (t_max / (number_of_plots - 1)) * i1
         # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
         A_matrix_analytic = matrix.newMatrixAnalytic(phi_rotate, betta_rotate, phi_mu, betta_mu)
@@ -323,18 +323,19 @@ def plot_map_cos_in_range(position_of_max, t_max, N_phi_accretion, N_theta_accre
                                                            norm=normalizer)
         # попытки для сдвига 0 на картах
         # axes[row_figure, column_figure].set_ylim(theta_range[0]/grad_to_rad, theta_range[N_theta_accretion-1]/grad_to_rad)
-        axes[row_figure, column_figure].set_rorigin(-theta_accretion_begin)
+        axes[row_figure, column_figure].set_rorigin(-theta_accretion_begin)  # отступ для центра звезды
 
         axes[row_figure, column_figure].set_yticks([(theta_range[0] / grad_to_rad),
                                                     (theta_range[N_theta_accretion // 2] / grad_to_rad),
-                                                    (theta_range[-1] / grad_to_rad)])
+                                                    (theta_range[-1] / grad_to_rad)])  # форматируем по тета
 
         axes[row_figure, column_figure].set_yticklabels([round(theta_range[0] / grad_to_rad, 1),
                                                          round(theta_range[N_theta_accretion // 2] / grad_to_rad, 1),
-                                                         round(theta_range[-1] / grad_to_rad, 1)])
+                                                         round(theta_range[-1] / grad_to_rad,
+                                                               1)])  # форматируем по тета
 
         # axes[row_figure, column_figure].set_theta_zero_location('W', offset=50)
-        if count_0 > 0:
+        if count_0 > 0:  # рисую контур 0 если он есть
             cr[i1] = axes[row_figure, column_figure].contour(phi_range, theta_range / grad_to_rad,
                                                              cos_psi_range.transpose(),
                                                              [0.], colors='w')
