@@ -49,8 +49,8 @@ a_portion = config.a_portion  # a - в азимутальном направле
 
 mu = config.mu  # магнитный момент Гаусс * см3
 R_alfven = (mu ** 2 / (2 * M_accretion_rate * (2 * G * M_ns) ** (1 / 2))) ** (2 / 7)  # альфвеновский радиус
-ksi_param = 0.5
-R_e = ksi_param * R_alfven
+ksi_param = 0.5  # между 1 и 2 формулой в статье
+R_e = ksi_param * R_alfven  # между 1 и 2 формулой в статье
 print("R_e :%f" % R_e)
 print("R_e/R_* = %f" % (R_e / R_ns))
 
@@ -89,7 +89,10 @@ print("t2.3  %f" % (G * M_ns * M_accretion_rate / (R_ns * config.L_edd)))
 
 theta_accretion_end = np.arcsin((R_ns * ksiShock / R_e) ** (1 / 2))  # до шока - угол когда радиус = радиус шока
 
-phi_accretion = 360 * grad_to_rad * 1.01  # полный круг для наложения. на карте были пробелы
+R_phi = R_ns * np.sin(theta_accretion_begin)
+phi_accretion = 2 * 10 ** 5 / R_phi  # чтобы соответствовать БС l0 = 2 * 10 **5
+# phi_accretion = 360 * grad_to_rad * 1.01  # полный круг для наложения. на карте были пробелы
+print("phi = %f" % (phi_accretion / grad_to_rad))
 print("theta_accretion_begin = %f" % (theta_accretion_begin / grad_to_rad))
 print("theta_accretion_end = %f" % (theta_accretion_end / grad_to_rad))
 

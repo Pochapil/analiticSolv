@@ -46,9 +46,9 @@ def get_Teff_distribution(number_of_steps, R_e, delta_ns, A_normal):
     # eta = 18  # взял из 19 стр над 37 формулой
     # eta = 16.7477  # взял из сообщения в телеге
 
-    # 44 формула статья
+    # 50 формула статья
     gamma = (c * R_ns * A_normal * 3) / (k * delta_ns ** 2 * M_accretion_rate * 2 * ksi_rad)
-    # 45 формула статья
+    # 51 формула статья
     eta = ((8 * k * u0 * delta_ns ** 2 * 2 * ksi_rad) / (21 * c * (2 * G * M_ns * R_ns) ** (1 / 2) * 3)) ** (1 / 4)
 
     # 30 формула, du/dksi; dv/dksi = производная от 3 равенства
@@ -118,6 +118,7 @@ def get_Teff_distribution(number_of_steps, R_e, delta_ns, A_normal):
     Tbs = (u(ksi_bs) / a_rad_const) ** (1 / 4)  # настоящее аналитическое решение
 
     e = c / (k * s * d0)  # формула 18 стр 14
+
 
     # 21 стр конец 2 абзаца
     def fTheta():
