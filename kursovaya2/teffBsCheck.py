@@ -5,7 +5,7 @@ import config
 import matplotlib.pyplot as plt
 
 
-def get_Teff_distribution(number_of_steps, m_accretion_rate, H, dRe_div_Re, R_e, ksi_rad, delta_ns, A_normal):
+def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e, ksi_rad, delta_ns, A_normal):
     # решение зависит от n размера пространства !!! взял n=3 везде
     # Parameters
     # const
@@ -46,7 +46,7 @@ def get_Teff_distribution(number_of_steps, m_accretion_rate, H, dRe_div_Re, R_e,
     # eta = 16.7477  # взял из сообщения в телеге
 
     # 44 формула статья
-    gamma = (c * R_ns * A_normal * 3) / (k * delta_ns ** 2 * m_accretion_rate * 2 * ksi_rad)
+    gamma = (c * R_ns * A_normal * 3) / (k * delta_ns ** 2 * M_accretion_rate * 2 * ksi_rad)
     # 45 формула статья
     eta = ((8 * k * u0 * delta_ns ** 2 * 2 * ksi_rad) / (21 * c * (2 * G * M_ns * R_ns) ** (1 / 2) * 3)) ** (1 / 4)
 
@@ -117,6 +117,8 @@ def get_Teff_distribution(number_of_steps, m_accretion_rate, H, dRe_div_Re, R_e,
     Tbs = (u(ksi_bs) / a_rad_const) ** (1 / 4)  # настоящее аналитическое решение
 
     e = c / (k * s * d0)  # формула 18 стр 14
+    # e = gamma * d0 / R_ns # под 30 формулой
+    # e = c / k / (M_accretion_rate / A_normal) / delta_ns
 
     # 21 стр конец 2 абзаца
     def fTheta():
@@ -166,5 +168,22 @@ def get_Teff_distribution(number_of_steps, m_accretion_rate, H, dRe_div_Re, R_e,
     ax6.legend()
 
     plt.show()
+
+    # проверка на соответствие 5 рисунку в БС
+    fig = plt.figure(figsize=(8, 8))
+
+    ax1 = fig.add_subplot(111)
+
+    ax1.plot(ksi1[::-1], np.log10(Teff), marker='*', alpha=0.5, color='b', label='Teff')
+    ax1.plot(ksi1[::-1], np.log10(T), linestyle='--', color='g', label='Tin')
+
+    ax1.plot(ksi1[::-1], np.log10(Teffbs), alpha=0.5, color='r', label='TeffBS')
+    ax1.plot(ksi1[::-1], np.log10(Tbs), linestyle='-.', color='k', label='TinBS')
+
+    ax1.legend()
+
+    plt.show()
+
+    print("e = %.4f" % e)
 
     return Teffbs, Teff, ksiShock,

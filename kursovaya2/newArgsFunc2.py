@@ -45,8 +45,8 @@ def get_Teff_distribution(number_of_steps, R_e, delta_ns, A_normal):
     # eta = (8 / 21 * u0 * d0 ** 2 * k / (c * (2 * G * M * R) ** (1 / 2))) ** (1 / 4)  # константа
     # eta = 18  # взял из 19 стр над 37 формулой
 
-    #gamma = 1  # параметр отношение темпов аккреции
-    #eta = 16.7477  # взял из сообщения в телеге
+    # gamma = 1  # параметр отношение темпов аккреции
+    # eta = 16.7477  # взял из сообщения в телеге
 
     # 50 формула статья
     gamma = (c * R_ns * A_normal * 3) / (k * delta_ns ** 2 * M_accretion_rate * 2 * ksi_rad)
@@ -122,6 +122,7 @@ def get_Teff_distribution(number_of_steps, R_e, delta_ns, A_normal):
     Tbs = (u(ksi_bs) / a_rad_const) ** (1 / 4)  # настоящее аналитическое решение
 
     e = c / (k * s * d0)  # формула 18 стр 14
+    e = c / k / (M_accretion_rate / A_normal) / delta_ns
 
     # 21 стр конец 2 абзаца
     def fTheta():
@@ -158,4 +159,5 @@ def get_Teff_distribution(number_of_steps, R_e, delta_ns, A_normal):
     L_x = (1 - betta) * M_accretion_rate * G * M_ns / R_ns
 
     print("bettaBS = %f" % betta)
+    print("e = %.5f" % e)
     return Teff, ksiShock, L_x
