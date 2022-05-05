@@ -42,6 +42,9 @@ def get_Teff_distribution(number_of_steps, m_accretion_rate, H, dRe_div_Re, R_e,
     # eta = 18  # взял из 19 стр над 37 формулой
     # eta = 16.7477  # взял из сообщения в телеге
 
+    # gamma = 1  # параметр отношение темпов аккреции
+    # eta = 16.7477  # взял из сообщения в телеге
+
     # 44 формула статья
     gamma = (c * R_ns * A_normal * 3) / (k * delta_ns ** 2 * m_accretion_rate * 2 * ksi_rad)
     # 45 формула статья

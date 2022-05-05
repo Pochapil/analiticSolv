@@ -90,8 +90,9 @@ print("t2.3  %f" % (G * M_ns * M_accretion_rate / (R_ns * config.L_edd)))
 theta_accretion_end = np.arcsin((R_ns * ksiShock / R_e) ** (1 / 2))  # до шока - угол когда радиус = радиус шока
 
 R_phi = R_ns * np.sin(theta_accretion_begin)
-phi_accretion = 2 * 10 ** 5 / R_phi  # чтобы соответствовать БС l0 = 2 * 10 **5
-# phi_accretion = 360 * grad_to_rad * 1.01  # полный круг для наложения. на карте были пробелы
+# phi_accretion = 2 * 10 ** 5 / R_phi  # чтобы соответствовать БС l0 = 2 * 10 **5
+phi_accretion = 360 * grad_to_rad * 1.01  # полный круг для наложения. на карте были пробелы
+
 print("phi = %f" % (phi_accretion / grad_to_rad))
 print("theta_accretion_begin = %f" % (theta_accretion_begin / grad_to_rad))
 print("theta_accretion_end = %f" % (theta_accretion_end / grad_to_rad))
@@ -437,7 +438,7 @@ ax3 = fig.add_subplot(111)
 ax3.plot(phi_for_plot, np.append(sum_simps_integrate[position_of_max:], sum_simps_integrate[0:position_of_max]), 'r',
          label='simps')
 ax3.plot(phi_for_plot, np.append(analytic_integral_phi[position_of_max:], analytic_integral_phi[0:position_of_max]),
-         'b',
+         'b', marker='*', alpha=0.4,
          label='phi_integrate')
 ax3.set_xlabel('phase')
 ax3.set_ylabel("isotropic luminosity, erg/s")

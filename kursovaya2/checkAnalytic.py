@@ -66,8 +66,7 @@ def A_normal(a, theta):
 
 
 Teffbs, Teff, ksiShock = teffBsCheck.get_Teff_distribution(N_theta_accretion, M_accretion_rate, H, dRe_div_Re, R_e,
-                                                           ksi_rad,
-                                                           delta_distance(theta_accretion_begin),
+                                                           ksi_rad, delta_distance(theta_accretion_begin),
                                                            A_normal(a_portion, theta_accretion_begin))
 
 ksiStop1 = 1.
@@ -78,8 +77,13 @@ print("ksiShock = %f" % ksiShock)
 # Plot results
 fig = plt.figure(1, figsize=(8, 8))
 ax3 = fig.add_subplot(111)
-ax3.plot(ksi1[::-1], np.log10(Teff), 'b', label='Teff')
-ax3.plot(ksi1[::-1], np.log10(Teffbs), 'r', label='Teffbs')  # аналитическое решение
+
+ax3.scatter(ksi1[::-1], np.log10(Teff), marker='*', alpha=0.5, color='b', label='Teff')
+# ax3.scatter(ksi1[::-1], np.log10(Teffbs), color='r', label='Teffbs')
+
+# ax3.plot(ksi1[::-1], np.log10(Teff), 'b', alpha=1, label='Teff')
+ax3.plot(ksi1[::-1], np.log10(Teffbs), 'r', linestyle='-', label='Teffbs')  # аналитическое решение
+
 ax3.set_xlabel('ksi')
 ax3.set_ylabel('log10T')
 ax3.legend()
