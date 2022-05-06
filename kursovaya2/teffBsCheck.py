@@ -27,6 +27,8 @@ def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e,
     d0 = 5 * 10 ** 3  # ширина аккреции на поверхности м взял как в статье стр 4
     u0 = 3 * H ** 2 / 8 / np.pi  # значение плотности излучения на поверхности
 
+    l0 = A_normal / (2 * delta_ns)
+    d0 = delta_ns
     # formulas
     k = config.k  # opacity непрозрачность взял томсоновскую  стр 12 (под 11 формулой ?)
     s = c * R_ns / k / d0 ** 2  # поток массы при условии что gamma =1 (мб из 3 формулы ?) ур стр 14 ур 18 и стр 17 под ур 30
@@ -161,6 +163,7 @@ def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e,
     ax5.legend()
 
     ax6 = fig.add_subplot(122)
+
     ax6.plot(ksi1[::-1], solution_before_ksi[::-1, 1] / c, 'b', label='v/c')
     ax6.plot(ksi1[::-1], v(ksi1[::-1]) / c, 'r', label='vbs/c')
     ax6.set_xlabel('ksi')
