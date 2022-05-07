@@ -32,6 +32,7 @@ def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e,
     # formulas
     k = config.k  # opacity непрозрачность взял томсоновскую  стр 12 (под 11 формулой ?)
     s = c * R_ns / k / d0 ** 2  # поток массы при условии что gamma =1 (мб из 3 формулы ?) ур стр 14 ур 18 и стр 17 под ур 30
+    s = M_accretion_rate / A_normal
     # мб нужно умножить на 2 если 2 полюса
     # s = 2 * 10 ** 18 / (l0 * d0)  # поток массы M* взял 10**18 г/с эдингтоновский темп
 
@@ -119,6 +120,7 @@ def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e,
     Tbs = (u(ksi_bs) / a_rad_const) ** (1 / 4)  # настоящее аналитическое решение
 
     e = c / (k * s * d0)  # формула 18 стр 14
+
     # e = gamma * d0 / R_ns # под 30 формулой
     # e = c / k / (M_accretion_rate / A_normal) / delta_ns
 
@@ -156,16 +158,20 @@ def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e,
     fig = plt.figure(figsize=(8, 8))
 
     ax5 = fig.add_subplot(121)
-    ax5.plot(ksi1[::-1], solution_before_ksi[::-1, 0], 'b', label='u')
-    ax5.plot(ksi1[::-1], u(ksi1[::-1]), 'r', label='ubs')
+    ax5.plot(ksi1[::-1], solution_before_ksi[::-1, 0], marker='*', alpha=0.5, color='b', label='u')
+    ax5.plot(ksi1[::-1], u(ksi1[::-1]), 'r', linestyle='-', label='ubs')
     ax5.set_xlabel('ksi')
     ax5.set_ylabel('u')
     ax5.legend()
 
     ax6 = fig.add_subplot(122)
 
-    ax6.plot(ksi1[::-1], solution_before_ksi[::-1, 1] / c, 'b', label='v/c')
-    ax6.plot(ksi1[::-1], v(ksi1[::-1]) / c, 'r', label='vbs/c')
+    # ax6.plot(ksi1[::-1], np.log10(np.abs(solution_before_ksi[::-1, 1] / c)), 'b', label='v/c')
+    # ax6.plot(ksi1[::-1], np.log10(np.abs(v(ksi1[::-1]) / c)), 'r', label='vbs/c')
+
+    ax6.plot(ksi1[::-1], solution_before_ksi[::-1, 1] / c, 'b',marker='*', alpha=0.5, label='v/c')
+    ax6.plot(ksi1[::-1], v(ksi1[::-1]) / c, 'r',linestyle='-', label='vbs/c')
+
     ax6.set_xlabel('ksi')
     ax6.set_ylabel('v/c')
     ax6.legend()
@@ -188,5 +194,6 @@ def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e,
     plt.show()
 
     print("e = %.4f" % e)
-
+    print("v_bs(ksi_shock/c) = %f" % (v(ksiShock) / c))
+    print("v/c) = %f" % (v1 / c))
     return Teffbs, Teff, ksiShock,

@@ -32,13 +32,12 @@ def get_Teff_distribution(number_of_steps, R_e, delta_ns, A_normal):
     d0 = 5 * 10 ** 3  # ширина аккреции на поверхности м взял как в статье стр 4
     u0 = 3 * H ** 2 / 8 / np.pi  # значение плотности излучения на поверхности
 
-
     d0 = delta_ns
     # formulas
     # k = 3.977 * 10 ** (-1)  # opacity непрозрачность взял томсоновскую  стр 12 (под 11 формулой ?)
     k = 0.35
     # s = c * R_ns / k / d0 ** 2  # поток массы при условии что gamma =1 (мб из 3 формулы ?) ур стр 14 ур 18 и стр 17 под ур 30
-    s = M_accretion_rate/A_normal
+    s = M_accretion_rate / A_normal
     # мб нужно умножить на 2 если 2 полюса
     # s = 2 * 10 ** 18 / (l0 * d0)  # поток массы M* взял 10**18 г/с эдингтоновский темп
 
@@ -165,4 +164,5 @@ def get_Teff_distribution(number_of_steps, R_e, delta_ns, A_normal):
 
     print("bettaBS = %f" % betta)
     print("e = %.5f" % e)
+
     return Teff, ksiShock, L_x
