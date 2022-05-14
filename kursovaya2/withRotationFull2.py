@@ -93,8 +93,8 @@ R_phi = R_ns * np.sin(theta_accretion_begin)
 
 l0 = A_normal(theta_accretion_begin) / (2 * delta_distance(theta_accretion_begin))
 print("l0 = %.5f" % l0)
-phi_accretion = l0 / R_phi  # чтобы соответствовать БС l0 = 2 * 10 **5
-# phi_accretion = 360 * grad_to_rad * 1.01  # полный круг для наложения. на карте были пробелы
+# phi_accretion = l0 / R_phi  # чтобы соответствовать БС l0 = 2 * 10 **5
+phi_accretion = 360 * grad_to_rad * 1.01  # полный круг для наложения. на карте были пробелы
 
 print("phi = %f" % (phi_accretion / grad_to_rad))
 print("theta_accretion_begin = %f" % (theta_accretion_begin / grad_to_rad))
@@ -132,10 +132,14 @@ for j in range(N_theta_accretion):
 # t_max = 40  # sec
 
 omega_ns = 8  # скорость вращения НЗ - будет меняться только угол phi_mu!
-# цикл для поворотов, сколько точек на графике интегралов - для полного поворота
-t_max = (360 // omega_ns) + (1 if 360 % omega_ns > 0 else 0)
-omega_ns = omega_ns * grad_to_rad  # перевожу в радианы
+# цикл для поворотов, сколько точек на графике интегралов - для фазы от 0 до 2 - с перекрытием чтобы форму макс
+max_phase_angle = 720
+t_max = (max_phase_angle // omega_ns) + (1 if max_phase_angle % omega_ns > 0 else 0)
+# цикл для поворотов, сколько точек на графике интегралов - для фазы от 0 до 1 (полного поворота)
+max_phase_angle = 360
+t_max_for_cos = (max_phase_angle // omega_ns) + (1 if max_phase_angle % omega_ns > 0 else 0)
 
+omega_ns = omega_ns * grad_to_rad  # перевожу в радианы
 
 def get_angles_from_vector(e_obs):
     x = e_obs[0, 0]
@@ -295,7 +299,7 @@ def plot_map_cos(n_pos, position_of_max, t_max, N_phi_accretion, N_theta_accreti
     plt.show()
 
 
-def plot_map_cos_in_range(position_of_max, t_max, N_phi_accretion, N_theta_accretion, row_number, column_number):
+def plot_map_cos_in_range(position_of_max, t_max_for_cos, N_phi_accretion, N_theta_accretion, row_number, column_number):
     number_of_plots = row_number * column_number
 
     crf = [0] * number_of_plots
@@ -314,7 +318,7 @@ def plot_map_cos_in_range(position_of_max, t_max, N_phi_accretion, N_theta_accre
     phi_mu_max = phi_mu_0 + omega_ns * position_of_max
     for i1 in range(number_of_plots):
         # поворот на угол
-        phi_mu = phi_mu_max + omega_ns * (t_max / (number_of_plots - 1)) * i1
+        phi_mu = phi_mu_max + omega_ns * (t_max_for_cos / (number_of_plots - 1)) * i1
         # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
         A_matrix_analytic = matrix.newMatrixAnalytic(phi_rotate, betta_rotate, phi_mu, betta_mu)
 
@@ -350,7 +354,7 @@ def plot_map_cos_in_range(position_of_max, t_max, N_phi_accretion, N_theta_accre
                                                              [0.], colors='w')
 
         axes[row_figure, column_figure].set_title(
-            "phase = %.2f" % (omega_ns * (t_max / (number_of_plots - 1)) * i1 / (2 * np.pi)))
+            "phase = %.2f" % (omega_ns * (t_max_for_cos / (number_of_plots - 1)) * i1 / (2 * np.pi)))
         column_figure += 1
         if column_figure == column_number:
             column_figure = 0
@@ -373,7 +377,7 @@ def plot_map_t_eff(T_eff, N_phi_accretion, N_theta_accretion):
     plt.show()
 
 
-def plot_map_delta_phi(position_of_max, t_max, N_phi_accretion, N_theta_accretion, row_number, column_number):
+def plot_map_delta_phi(position_of_max, t_max_for_cos, N_phi_accretion, N_theta_accretion, row_number, column_number):
     number_of_plots = row_number * column_number
 
     crf = [0] * number_of_plots
@@ -391,7 +395,7 @@ def plot_map_delta_phi(position_of_max, t_max, N_phi_accretion, N_theta_accretio
     phi_mu_max = phi_mu_0 + omega_ns * position_of_max
     for i1 in range(number_of_plots):
         # сдвигаем графики относительно позиции максимума. чтобы макс был на (0,0)
-        phi_mu = phi_mu_max + omega_ns * (t_max / (number_of_plots - 1)) * i1
+        phi_mu = phi_mu_max + omega_ns * (t_max_for_cos / (number_of_plots - 1)) * i1
         # расчет матрицы поворота в магнитную СК и вектора на наблюдателя
         A_matrix_analytic = matrix.newMatrixAnalytic(phi_rotate, betta_rotate, phi_mu, betta_mu)
         e_obs_mu = np.dot(A_matrix_analytic, e_obs)  # переход в магнитную СК
@@ -409,7 +413,7 @@ def plot_map_delta_phi(position_of_max, t_max, N_phi_accretion, N_theta_accretio
                                                            cos_psi_range, vmin=-1, vmax=1, cmap=cmap,
                                                            norm=normalizer)
         axes[row_figure, column_figure].set_title(
-            "phase = %.2f" % (omega_ns * (t_max / (number_of_plots - 1)) * i1 / (2 * np.pi)))
+            "phase = %.2f" % (omega_ns * (t_max_for_cos / (number_of_plots - 1)) * i1 / (2 * np.pi)))
 
         # axes[row_figure, column_figure].set_theta_zero_location('E', offset=phi_obs/grad_to_rad)
         axes[row_figure, column_figure].set_theta_offset(phi_obs)
@@ -456,8 +460,8 @@ print(H)
 row_number = 2
 column_number = 3
 # plot_map_cos(n_pos, position_of_max, t_max, N_phi_accretion, N_theta_accretion, row_number, column_number)
-plot_map_cos_in_range(position_of_max, t_max, N_phi_accretion, N_theta_accretion, row_number, column_number)
-plot_map_delta_phi(position_of_max, t_max, N_phi_accretion, N_theta_accretion, row_number, column_number)
+plot_map_cos_in_range(position_of_max, t_max_for_cos, N_phi_accretion, N_theta_accretion, row_number, column_number)
+plot_map_delta_phi(position_of_max, t_max_for_cos, N_phi_accretion, N_theta_accretion, row_number, column_number)
 
 plt.show()
 
