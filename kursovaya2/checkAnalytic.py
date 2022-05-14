@@ -78,13 +78,17 @@ print("ksiShock = %f" % ksiShock)
 fig = plt.figure(1, figsize=(8, 8))
 ax3 = fig.add_subplot(111)
 
-ax3.scatter(ksi1[::-1], np.log10(Teff), marker='*', alpha=0.5, color='b', label='Teff')
-# ax3.scatter(ksi1[::-1], np.log10(Teffbs), color='r', label='Teffbs')
+ax3.scatter(ksi1[::-1], Teff, marker='*', alpha=0.5, color='b', label=r"$T_{eff}$")
+ax3.plot(ksi1[::-1], Teffbs, 'r', linestyle='-', label=r"$T_{eff}^{BS}$")  # аналитическое решение
+ax3.set_yscale('log')
 
-# ax3.plot(ksi1[::-1], np.log10(Teff), 'b', alpha=1, label='Teff')
-ax3.plot(ksi1[::-1], np.log10(Teffbs), 'r', linestyle='-', label='Teffbs')  # аналитическое решение
 
-ax3.set_xlabel('ksi')
-ax3.set_ylabel('log10T')
+# ax3.scatter(ksi1[::-1], np.log10(Teff), marker='*', alpha=0.5, color='b', label=r"$\log{T_{eff}}$")
+# ax3.plot(ksi1[::-1], np.log10(Teffbs), 'r', linestyle='-', label=r"$\log{T_{eff}^{BS}}$")  # аналитическое решение
+
+
+
+ax3.set_xlabel(r"$\xi$")
+ax3.set_ylabel(r"$T, K$")
 ax3.legend()
 plt.show()

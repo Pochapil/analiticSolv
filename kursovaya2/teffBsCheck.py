@@ -158,10 +158,16 @@ def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e,
     fig = plt.figure(figsize=(8, 8))
 
     ax5 = fig.add_subplot(121)
-    ax5.plot(ksi1[::-1], solution_before_ksi[::-1, 0], marker='*', alpha=0.5, color='b', label='u')
-    ax5.plot(ksi1[::-1], u(ksi1[::-1]), 'r', linestyle='-', label='ubs')
-    ax5.set_xlabel('ksi')
-    ax5.set_ylabel('u')
+
+    ax5.plot(ksi1[::-1], solution_before_ksi[::-1, 0], marker='*', alpha=0.5, color='b', label=r"u")
+    ax5.plot(ksi1[::-1], u(ksi1[::-1]), 'r', linestyle='-', label=r"$u_{BS}$")
+    ax5.set_yscale('log')
+
+
+    # ax5.plot(ksi1[::-1], np.log10(solution_before_ksi[::-1, 0]), marker='*', alpha=0.5, color='b', label=r"$\log {u}$")
+    # ax5.plot(ksi1[::-1], np.log10(u(ksi1[::-1])), 'r', linestyle='-', label=r"$\log {u_{BS}}$")
+    ax5.set_xlabel(r"$\xi$")
+    ax5.set_ylabel(r"$u, G^2$")
     ax5.legend()
 
     ax6 = fig.add_subplot(122)
@@ -169,11 +175,10 @@ def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e,
     # ax6.plot(ksi1[::-1], np.log10(np.abs(solution_before_ksi[::-1, 1] / c)), 'b', label='v/c')
     # ax6.plot(ksi1[::-1], np.log10(np.abs(v(ksi1[::-1]) / c)), 'r', label='vbs/c')
 
-    ax6.plot(ksi1[::-1], solution_before_ksi[::-1, 1] / c, 'b',marker='*', alpha=0.5, label='v/c')
-    ax6.plot(ksi1[::-1], v(ksi1[::-1]) / c, 'r',linestyle='-', label='vbs/c')
-
-    ax6.set_xlabel('ksi')
-    ax6.set_ylabel('v/c')
+    ax6.plot(ksi1[::-1], solution_before_ksi[::-1, 1] / c, 'b', marker='*', alpha=0.5, label='v/c')
+    ax6.plot(ksi1[::-1], v(ksi1[::-1]) / c, 'r', linestyle='-', label=r"$v_{BS}/c$")
+    ax6.set_xlabel(r"$\xi$")
+    ax6.set_ylabel("v/c")
     ax6.legend()
 
     plt.show()
@@ -183,17 +188,27 @@ def get_Teff_distribution(number_of_steps, M_accretion_rate, H, dRe_div_Re, R_e,
 
     ax1 = fig.add_subplot(111)
 
-    ax1.plot(ksi1[::-1], np.log10(Teff), marker='*', alpha=0.5, color='b', label='Teff')
-    ax1.plot(ksi1[::-1], np.log10(T), linestyle='--', color='g', label='Tin')
+    ax1.plot(ksi1[::-1], Teff, marker='*', alpha=0.5, color='b', label=r"${T_{eff}}$")
+    ax1.plot(ksi1[::-1], T, linestyle='--', color='g', label=r"${T_{in}}$")
 
-    ax1.plot(ksi1[::-1], np.log10(Teffbs), alpha=0.5, color='r', label='TeffBS')
-    ax1.plot(ksi1[::-1], np.log10(Tbs), linestyle='-.', color='k', label='TinBS')
+    ax1.plot(ksi1[::-1], Teffbs, alpha=0.5, color='r', label=r"${T_{eff}^{BS}}$")
+    ax1.plot(ksi1[::-1], Tbs, linestyle=':', color='k', label=r"${T_{in}^{BS}}$")
+    ax1.set_yscale('log')
 
+    # ax1.plot(ksi1[::-1], np.log10(Teff), marker='*', alpha=0.5, color='b', label=r"$\log {T_{eff}}$")
+    # ax1.plot(ksi1[::-1], np.log10(T), linestyle='--', color='g', label=r"$\log {T_{in}}$")
+    #
+    # ax1.plot(ksi1[::-1], np.log10(Teffbs), alpha=0.5, color='r', label=r"$\log {T_{eff}^{BS}}$")
+    # ax1.plot(ksi1[::-1], np.log10(Tbs), linestyle=':', color='k', label=r"$\log {T_{in}^{BS}}$")
+
+
+    ax1.set_xlabel(r"$\xi$")
+    ax1.set_ylabel(r"$T, K$")
     ax1.legend()
 
     plt.show()
 
     print("e = %.4f" % e)
-    print("v_bs(ksi_shock/c) = %f" % (v(ksiShock) / c))
-    print("v/c) = %f" % (v1 / c))
+    print("v_bs(ksi_shock)/c = %f" % (v(ksiShock) / c))
+    print("v/c = %f" % (v1 / c))
     return Teffbs, Teff, ksiShock,

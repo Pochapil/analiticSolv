@@ -443,7 +443,7 @@ ax3.plot(phi_for_plot, np.append(sum_simps_integrate[position_of_max:], sum_simp
          label='simps')
 ax3.plot(phi_for_plot, np.append(analytic_integral_phi[position_of_max:], analytic_integral_phi[0:position_of_max]),
          'b', marker='*', alpha=0.4,
-         label='phi_integrate')
+         label=r"$\phi integrate$")
 ax3.set_xlabel('phase')
 ax3.set_ylabel("isotropic luminosity, erg/s")
 ax3.legend()
