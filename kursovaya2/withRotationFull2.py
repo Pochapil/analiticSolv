@@ -17,16 +17,18 @@ import config  # const
 grad_to_rad = np.pi / 180
 print(grad_to_rad)
 # угол между нормалью к двойной системе и наблюдателем
-i_angle = 30 * grad_to_rad
+i_angle = 0 * grad_to_rad
 # вектор на наблюдателя в системе координат двойной системы
 e_obs = np.array([0, np.sin(i_angle), np.cos(i_angle)])
 
+file_count = 5
+
 # угол между осью вращения системы и собственным вращенеим НЗ
-betta_rotate = 12 * grad_to_rad
-phi_rotate = 13 * grad_to_rad
+betta_rotate = (file_count // 3) * 15 * grad_to_rad
+phi_rotate = 0 * grad_to_rad
 
 # угол между собственным вращенеим НЗ и магнитной осью
-betta_mu = 15 * grad_to_rad
+betta_mu = (file_count % 3) * 15 * grad_to_rad
 phi_mu_0 = 0 * grad_to_rad
 
 # omega_ns = 4 * grad_to_rad  # скорость вращения НЗ - будет меняться только угол phi_mu!
@@ -141,6 +143,7 @@ t_max_for_cos = (max_phase_angle // omega_ns) + (1 if max_phase_angle % omega_ns
 
 omega_ns = omega_ns * grad_to_rad  # перевожу в радианы
 
+
 def get_angles_from_vector(e_obs):
     x = e_obs[0, 0]
     y = e_obs[0, 1]
@@ -209,6 +212,9 @@ def calculate_integral_distribution(t_max, N_phi_accretion, N_theta_accretion):
         # print("e_obs_mu%d: (%f, %f, %f), angle phi = %f" % (
         # i1, e_obs_mu[0, 0], e_obs_mu[0, 1], e_obs_mu[0, 2], np.arctan(e_obs_mu[0, 1] / e_obs_mu[0, 0])/grad_to_rad))
         # print("e_obs_mu%d: (%f, %f, %f)" % (i1, np.take(e_obs_mu, 0), np.take(e_obs_mu, 1), np.take(e_obs_mu, 2)))
+
+        # phi, theta = get_angles_from_vector(e_obs_mu)
+        # print("thetaObs%d = %f" % (i1, (theta/grad_to_rad)))
 
         # sum_intense изотропная светимость ( * 4 pi еще надо)
         for i in range(N_phi_accretion):
@@ -299,7 +305,8 @@ def plot_map_cos(n_pos, position_of_max, t_max, N_phi_accretion, N_theta_accreti
     plt.show()
 
 
-def plot_map_cos_in_range(position_of_max, t_max_for_cos, N_phi_accretion, N_theta_accretion, row_number, column_number):
+def plot_map_cos_in_range(position_of_max, t_max_for_cos, N_phi_accretion, N_theta_accretion, row_number,
+                          column_number):
     number_of_plots = row_number * column_number
 
     crf = [0] * number_of_plots
@@ -453,48 +460,54 @@ ax3.set_ylabel("isotropic luminosity, erg/s")
 ax3.legend()
 # ax3.yscale('log')
 plt.yscale('log')
+plt.show()
 
 print(M_accretion_rate)
 print(H)
+
+file_name = "save%d.txt" % file_count
+np.savetxt("phi_for_plot.txt", phi_for_plot)
+np.savetxt(file_name, np.append(analytic_integral_phi[position_of_max:], analytic_integral_phi[0:position_of_max]))
 
 row_number = 2
 column_number = 3
 # plot_map_cos(n_pos, position_of_max, t_max, N_phi_accretion, N_theta_accretion, row_number, column_number)
 plot_map_cos_in_range(position_of_max, t_max_for_cos, N_phi_accretion, N_theta_accretion, row_number, column_number)
-plot_map_delta_phi(position_of_max, t_max_for_cos, N_phi_accretion, N_theta_accretion, row_number, column_number)
+# plot_map_delta_phi(position_of_max, t_max_for_cos, N_phi_accretion, N_theta_accretion, row_number, column_number)
 
-plt.show()
-
+plot_3D_flag = False
 # рисуем 3D
-fig = plt.figure(figsize=(8, 8))
-ax = plt.axes(projection='3d')
 
-# рисуем звезду
-theta_range = np.arange(0, np.pi, np.pi / N_theta_accretion)
-phi_range = np.arange(0, 2 * np.pi, 2 * np.pi / N_phi_accretion)
+if (plot_3D_flag):
+    fig = plt.figure(figsize=(8, 8))
+    ax = plt.axes(projection='3d')
 
-u, v = np.meshgrid(phi_range, theta_range)
-r1 = np.sin(theta_accretion_begin) ** 2
-x = r1 * np.sin(v) * np.cos(u)
-y = r1 * np.sin(v) * np.sin(u)
-z = r1 * np.cos(v)
+    # рисуем звезду
+    theta_range = np.arange(0, np.pi, np.pi / N_theta_accretion)
+    phi_range = np.arange(0, 2 * np.pi, 2 * np.pi / N_phi_accretion)
 
-ax.plot_surface(x, y, z, color='b', alpha=1)
+    u, v = np.meshgrid(phi_range, theta_range)
+    r1 = np.sin(theta_accretion_begin) ** 2
+    x = r1 * np.sin(v) * np.cos(u)
+    y = r1 * np.sin(v) * np.sin(u)
+    z = r1 * np.cos(v)
 
-# рисуем силовые линии
-theta_range = np.arange(0, np.pi, np.pi / N_theta_accretion)
-phi_range = np.arange(0, 1 / 2 * np.pi, 1 / 2 * np.pi / N_phi_accretion)
+    ax.plot_surface(x, y, z, color='b', alpha=1)
 
-r, p = np.meshgrid(np.sin(theta_range) ** 2, phi_range)
-r1 = r * np.sin(theta_range)
-x = r1 * np.cos(p)
-y = r1 * np.sin(p)
-z = r * np.cos(theta_range)
+    # рисуем силовые линии
+    theta_range = np.arange(0, np.pi, np.pi / N_theta_accretion)
+    phi_range = np.arange(0, 1 / 2 * np.pi, 1 / 2 * np.pi / N_phi_accretion)
 
-ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color="r", alpha=0.2)
-# ax.plot_surface(x, y, z, cmap=plt.cm.YlGnBu_r)
+    r, p = np.meshgrid(np.sin(theta_range) ** 2, phi_range)
+    r1 = r * np.sin(theta_range)
+    x = r1 * np.cos(p)
+    y = r1 * np.sin(p)
+    z = r * np.cos(theta_range)
 
-ax.set_xlim([-1, 1])
-ax.set_ylim([-1, 1])
-ax.set_zlim([-1, 1])
-plt.show()
+    ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color="r", alpha=0.2)
+    # ax.plot_surface(x, y, z, cmap=plt.cm.YlGnBu_r)
+
+    ax.set_xlim([-1, 1])
+    ax.set_ylim([-1, 1])
+    ax.set_zlim([-1, 1])
+    plt.show()
