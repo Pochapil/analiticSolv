@@ -31,7 +31,7 @@ for i in range(len(file_count_set)):
              label=r"$\omega=%d \, \mu=%d$" % ((file_count_set[i] // 3) * 15, (file_count_set[i] % 3) * 15))
 
 ax3.set_xlabel('phase')
-ax3.set_ylabel("isotropic luminosity, erg/s")
+ax3.set_ylabel("L, erg/s")
 ax3.legend()
 plt.yscale('log')
 plt.show()
@@ -43,7 +43,7 @@ ax3.plot(phi_for_plot, integral_set[i],
          label=r"$\omega=%d \, \mu=%d$" % ((file_count_set[i] // 3) * 15, (file_count_set[i] % 3) * 15))
 
 ax3.set_xlabel('phase')
-ax3.set_ylabel("isotropic luminosity, erg/s")
+ax3.set_ylabel("L, erg/s")
 ax3.legend()
 plt.yscale('log')
 plt.show()
@@ -51,10 +51,10 @@ plt.show()
 fig = plt.figure(figsize=(8, 8))
 ax3 = fig.add_subplot(111)
 for i in range(len(file_count_set)):
-    ax3.plot(phi_for_plot, integral_set[i]/(max(integral_set[i])),
+    ax3.plot(phi_for_plot, integral_set[i] / (max(integral_set[i])) * 2,
              label=r"$\omega=%d \, \mu=%d$" % ((file_count_set[i] // 3) * 15, (file_count_set[i] % 3) * 15))
-
+ax3.plot(phi_for_plot, np.cos(phi_for_plot * 2 * np.pi) + 1, 'black',marker='*', label=r"$\cos{(phase)} + 1$")
 ax3.set_xlabel('phase')
-ax3.set_ylabel("isotropic luminosity, erg/s")
+ax3.set_ylabel("$2 L/L_{max}$")
 ax3.legend()
 plt.show()

@@ -21,7 +21,7 @@ i_angle = 0 * grad_to_rad
 # вектор на наблюдателя в системе координат двойной системы
 e_obs = np.array([0, np.sin(i_angle), np.cos(i_angle)])
 
-file_count = 5
+file_count = 35
 
 # угол между осью вращения системы и собственным вращенеим НЗ
 betta_rotate = (file_count // 3) * 15 * grad_to_rad
